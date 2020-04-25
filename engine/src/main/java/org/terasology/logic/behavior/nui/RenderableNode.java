@@ -16,6 +16,8 @@
 package org.terasology.logic.behavior.nui;
 
 import com.google.common.collect.Lists;
+import org.joml.Vector2f;
+import org.joml.Vector2i;
 import org.terasology.nui.BaseInteractionListener;
 import org.terasology.nui.Canvas;
 import org.terasology.nui.CoreWidget;
@@ -24,10 +26,8 @@ import org.terasology.utilities.Assets;
 import org.terasology.input.Keyboard;
 import org.terasology.input.MouseInput;
 import org.terasology.input.device.KeyboardDevice;
-import org.terasology.math.geom.Vector2i;
 import org.terasology.logic.behavior.core.BehaviorNode;
 import org.terasology.logic.behavior.core.BehaviorState;
-import org.terasology.math.geom.Vector2f;
 import org.terasology.nui.UITextureRegion;
 import org.terasology.nui.events.NUIMouseClickEvent;
 import org.terasology.nui.events.NUIMouseDragEvent;

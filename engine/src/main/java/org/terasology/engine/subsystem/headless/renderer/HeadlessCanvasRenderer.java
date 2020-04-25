@@ -15,11 +15,11 @@
  */
 package org.terasology.engine.subsystem.headless.renderer;
 
+import org.joml.Rectanglei;
+import org.joml.Vector2i;
 import org.terasology.assets.ResourceUrn;
-import org.terasology.math.geom.Border;
-import org.terasology.math.geom.BaseVector2i;
 import org.terasology.math.geom.Rect2i;
-import org.terasology.math.geom.Vector2i;
+import org.terasology.nui.Border;
 import org.terasology.math.geom.Quat4f;
 import org.terasology.math.geom.Vector3f;
 import org.terasology.nui.Color;
@@ -47,7 +47,7 @@ public class HeadlessCanvasRenderer implements TerasologyCanvasRenderer {
     }
 
     @Override
-    public void drawMesh(Mesh mesh, Material material, Rect2i drawRegion, Rect2i cropRegion, Quat4f rotation, Vector3f offset, float scale, float alpha) {
+    public void drawMesh(Mesh mesh, Material material, Rectanglei drawRegion, Rectanglei cropRegion, Quat4f rotation, Vector3f offset, float scale, float alpha) {
         // Do nothing
     }
 
@@ -57,7 +57,7 @@ public class HeadlessCanvasRenderer implements TerasologyCanvasRenderer {
     }
 
     @Override
-    public void drawMaterialAt(Material material, Rect2i drawRegion) {
+    public void drawMaterialAt(Material material, Rectanglei drawRegion) {
         // Do nothing
     }
 
@@ -67,28 +67,28 @@ public class HeadlessCanvasRenderer implements TerasologyCanvasRenderer {
     }
 
     @Override
-    public void crop(Rect2i cropRegion) {
+    public void crop(Rectanglei cropRegion) {
         // Do nothing
     }
 
     @Override
-    public FrameBufferObject getFBO(ResourceUrn uri, BaseVector2i region) {
+    public FrameBufferObject getFBO(ResourceUrn uri, Vector2i region) {
         return null;
     }
 
     @Override
-    public void drawTexture(UITextureRegion texture, Color color, ScaleMode mode, Rect2i absoluteRegion, float ux, float uy, float uw, float uh, float alpha) {
+    public void drawTexture(UITextureRegion texture, Color color, ScaleMode mode, Rectanglei absoluteRegion, float ux, float uy, float uw, float uh, float alpha) {
         // Do nothing
     }
 
     @Override
-    public void drawText(String text, Font font, HorizontalAlign hAlign, VerticalAlign vAlign, Rect2i absoluteRegion, Color color, Color shadowColor,
+    public void drawText(String text, Font font, HorizontalAlign hAlign, VerticalAlign vAlign, Rectanglei absoluteRegion, Color color, Color shadowColor,
                          float alpha, boolean underlined) {
         // Do nothing
     }
 
     @Override
-    public void drawTextureBordered(UITextureRegion texture, Rect2i absoluteRegion, Border border, boolean tile, float ux, float uy, float uw, float uh, float alpha) {
+    public void drawTextureBordered(UITextureRegion texture, Rectanglei absoluteRegion, Border border, boolean tile, float ux, float uy, float uw, float uh, float alpha) {
         // Do nothing
     }
 }

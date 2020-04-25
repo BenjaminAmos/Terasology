@@ -76,7 +76,8 @@ public class BlockSelectionRenderer {
 
     public void setEffectsTexture(TextureRegionAsset textureRegionAsset) {
         setEffectsTexture(textureRegionAsset.getTexture());
-        textureRegion = textureRegionAsset.getRegion();
+        textureRegion = Rect2f.createFromMinAndSize(textureRegionAsset.getRegion().minX, textureRegionAsset.getRegion().minY,
+                textureRegionAsset.getRegion().lengthX(), textureRegionAsset.getRegion().lengthY());
         // reinitialize to recreate the mesh's UV coordinates for this textureRegion
         initialize();
     }

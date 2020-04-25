@@ -16,6 +16,7 @@
 package org.terasology.rendering.nui.layers.mainMenu.moduleDetailsScreen;
 
 import org.codehaus.plexus.util.StringUtils;
+import org.joml.Vector2i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.assets.ResourceUrn;
@@ -27,7 +28,6 @@ import org.terasology.engine.module.ModuleManager;
 import org.terasology.engine.module.RemoteModuleExtension;
 import org.terasology.engine.module.StandardModuleExtension;
 import org.terasology.i18n.TranslationSystem;
-import org.terasology.math.geom.Vector2i;
 import org.terasology.module.DependencyInfo;
 import org.terasology.module.DependencyResolver;
 import org.terasology.module.Module;

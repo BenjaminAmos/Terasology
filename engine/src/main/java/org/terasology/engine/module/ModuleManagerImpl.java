@@ -16,6 +16,7 @@
 package org.terasology.engine.module;
 
 import com.google.common.collect.Sets;
+import org.joml.Vector2i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.assets.Asset;
@@ -91,6 +92,8 @@ public class ModuleManagerImpl implements ModuleManager {
             additionalClassesList.add(Asset.class); // provide access to gestalt-asset-core.jar
             additionalClassesList.add(UIWidget.class); // provide access to nui.jar
             additionalClassesList.add(TypeRegistry.class); // provide access to nui-reflect.jar
+            additionalClassesList.add(Vector2i.class); // provide access to JOML
+            additionalClassesList.add(org.terasology.math.geom.Vector2i.class); // provide access to TeraMath
             additionalClassesList.addAll(classesOnClasspathsToAddToEngine); // provide access to any facade-provided classes
             Class<?>[] additionalClassesArray = new Class[additionalClassesList.size()];
             additionalClassesArray = additionalClassesList.toArray(additionalClassesArray);

@@ -18,7 +18,7 @@ package org.terasology.rendering.nui.internal;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
-import org.terasology.math.geom.Rect2i;
+import org.joml.Rectanglei;
 import org.terasology.math.geom.Vector2i;
 import org.terasology.nui.Color;
 

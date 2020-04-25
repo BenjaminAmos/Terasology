@@ -13,29 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.terasology.rendering.assets.texture.subtexture;
+package org.terasology.reflection.reflect.copy.strategy;
 
-import org.joml.Rectanglef;
-import org.terasology.assets.AssetData;
-import org.terasology.rendering.assets.texture.Texture;
+import org.terasology.math.geom.Vector2i;
+import org.terasology.reflection.copy.CopyStrategy;
+import org.terasology.reflection.copy.RegisterCopyStrategy;
 
 /**
  */
-public class SubtextureData implements AssetData {
-    private Texture texture;
-    private Rectanglef region;
-
-    public SubtextureData(Texture texture, Rectanglef region) {
-        this.texture = texture;
-        this.region = region;
+@RegisterCopyStrategy
+public class Vector2iCopyStrategy implements CopyStrategy<Vector2i> {
+    @Override
+    public Vector2i copy(Vector2i value) {
+        return new Vector2i(value);
     }
-
-    public Texture getTexture() {
-        return texture;
-    }
-
-    public Rectanglef getRegion() {
-        return region;
-    }
-
 }

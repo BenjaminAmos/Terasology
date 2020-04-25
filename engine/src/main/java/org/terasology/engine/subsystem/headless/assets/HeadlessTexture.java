@@ -17,11 +17,12 @@ package org.terasology.engine.subsystem.headless.assets;
 
 import com.google.common.collect.Lists;
 
+import org.joml.Rectanglef;
+import org.joml.Rectanglei;
+import org.joml.Vector2i;
 import org.terasology.assets.AssetType;
 import org.terasology.assets.ResourceUrn;
-import org.terasology.math.geom.Rect2f;
-import org.terasology.math.geom.Rect2i;
-import org.terasology.math.geom.Vector2i;
+import org.terasology.nui.util.RectUtility;
 import org.terasology.rendering.assets.texture.Texture;
 import org.terasology.rendering.assets.texture.TextureData;
 
@@ -84,7 +85,7 @@ public class HeadlessTexture extends Texture {
     }
 
     @Override
-    public Rect2f getRegion() {
+    public Rectanglef getRegion() {
         return FULL_TEXTURE_REGION;
     }
 
@@ -119,8 +120,8 @@ public class HeadlessTexture extends Texture {
     }
 
     @Override
-    public Rect2i getPixelRegion() {
-        return Rect2i.createFromMinAndSize(0, 0, textureData.getWidth(), textureData.getHeight());
+    public Rectanglei getPixelRegion() {
+        return RectUtility.createFromMinAndSize(0, 0, textureData.getWidth(), textureData.getHeight());
     }
 
     @Override

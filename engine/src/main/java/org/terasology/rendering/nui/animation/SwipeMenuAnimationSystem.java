@@ -15,7 +15,8 @@
  */
 package org.terasology.rendering.nui.animation;
 
-import org.terasology.math.geom.Rect2i;
+import org.joml.Rectanglei;
+import org.terasology.nui.util.RectUtility;
 import org.terasology.rendering.animation.Animation;
 import org.terasology.rendering.animation.AnimationListener;
 import org.terasology.rendering.animation.TimeModifiers;
@@ -194,14 +195,14 @@ public class SwipeMenuAnimationSystem implements MenuAnimationSystem {
     }
 
     @Override
-    public Rect2i animateRegion(Rect2i rc) {
+    public Rectanglei animateRegion(Rectanglei rc) {
         if (scale == 0.0) {
             // this should cover most of the cases
             return rc;
         }
 
-        int left = (int) (direction.getHorzScale() * scale * rc.width());
-        int top = (int) (direction.getVertScale() * scale * rc.height());
-        return Rect2i.createFromMinAndSize(left, top, rc.width(), rc.height());
+        int left = (int) (direction.getHorzScale() * scale * rc.lengthX());
+        int top = (int) (direction.getVertScale() * scale * rc.lengthY());
+        return RectUtility.createFromMinAndSize(left, top, rc.lengthX(), rc.lengthY());
     }
 }

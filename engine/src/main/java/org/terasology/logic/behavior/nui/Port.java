@@ -15,16 +15,17 @@
  */
 package org.terasology.logic.behavior.nui;
 
+import org.joml.Rectanglef;
+import org.joml.Vector2f;
+import org.joml.Vector2i;
 import org.terasology.nui.BaseInteractionListener;
 import org.terasology.nui.Canvas;
 import org.terasology.nui.CoreWidget;
 import org.terasology.nui.InteractionListener;
 import org.terasology.nui.UITextureRegion;
 import org.terasology.nui.events.NUIMouseClickEvent;
+import org.terasology.nui.util.RectUtility;
 import org.terasology.utilities.Assets;
-import org.terasology.math.geom.Rect2f;
-import org.terasology.math.geom.Vector2i;
-import org.terasology.math.geom.Vector2f;
 
 /**
  * Represents a port at a RenderableNode. There are several types of ports:
@@ -38,7 +39,7 @@ import org.terasology.math.geom.Vector2f;
  */
 public abstract class Port extends CoreWidget {
     protected RenderableNode node;
-    protected Rect2f rect;
+    protected Rectanglef rect;
     private UITextureRegion active = Assets.getTextureRegion("engine:checkboxChecked").get();
     private UITextureRegion inactive = Assets.getTextureRegion("engine:checkbox").get();
 
@@ -74,14 +75,14 @@ public abstract class Port extends CoreWidget {
         return false;
     }
 
-    public Rect2f getRect() {
+    public Rectanglef getRect() {
         return rect;
     }
 
     public Vector2f mid() {
-        Vector2f mid = new Vector2f(rect.size());
-        mid.scale(0.5f);
-        mid.add(rect.min());
+        Vector2f mid = new Vector2f(rect.lengths(new Vector2f()));
+        mid.mul(0.5f);
+        mid.add(new Vector2f(rect.minX, rect.minY));
         return mid;
 
     }
@@ -119,7 +120,7 @@ public abstract class Port extends CoreWidget {
 
         @Override
         public void updateRect() {
-            this.rect = Rect2f.createFromMinAndSize(
+            this.rect = RectUtility.createFromMinAndSize(
                     index() + 0.4f,
                     4.05f,
                     0.6f, 0.9f);
@@ -153,7 +154,7 @@ public abstract class Port extends CoreWidget {
 
         @Override
         public void updateRect() {
-            this.rect = Rect2f.createFromMinAndSize(
+            this.rect = RectUtility.createFromMinAndSize(
                     index(),
                     4.05f,
                     0.4f, 0.9f);
@@ -191,7 +192,7 @@ public abstract class Port extends CoreWidget {
 
         @Override
         public void updateRect() {
-            rect = Rect2f.createFromMinAndSize(4.5f, 0.05f, 1f, 1f);
+            rect = RectUtility.createFromMinAndSize(4.5f, 0.05f, 1f, 1f);
         }
 
         public void setTarget(OutputPort port) {

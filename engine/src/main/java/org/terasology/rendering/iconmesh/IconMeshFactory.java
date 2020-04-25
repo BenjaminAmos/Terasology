@@ -73,7 +73,7 @@ public final class IconMeshFactory {
     public static MeshData generateIconMeshData(TextureRegion tex, int alphaLimit, boolean withContour, Vector4f colorContour) {
         ByteBuffer buffer = tex.getTexture().getData().getBuffers()[0];
 
-        Rect2i pixelRegion = tex.getPixelRegion();
+        Rect2i pixelRegion = Rect2i.createFromMinAndSize(tex.getPixelRegion().minX, tex.getPixelRegion().minY, tex.getPixelRegion().lengthX(), tex.getPixelRegion().lengthY());
         int posX = pixelRegion.minX();
         int posY = pixelRegion.minY();
 

@@ -16,6 +16,7 @@
 package org.terasology.rendering.nui.contextMenu;
 
 import com.google.common.collect.Lists;
+import org.terasology.math.JomlUtil;
 import org.terasology.math.geom.Vector2i;
 import org.terasology.module.sandbox.API;
 import org.terasology.rendering.nui.NUIManager;
@@ -50,7 +51,7 @@ public final class ContextMenuUtils {
 
         ContextMenuScreen contextMenuScreen = (ContextMenuScreen) manager.getScreen(ContextMenuScreen.ASSET_URI);
         contextMenuScreen.setMenuWidgets(getMenuLevelList(manager, new VisibleTree(tree, true)));
-        contextMenuScreen.setPosition(position);
+        contextMenuScreen.setPosition(JomlUtil.from(position));
     }
 
     private static List<UIList<AbstractContextMenuItem>> getMenuLevelList(NUIManager manager, VisibleTree tree) {

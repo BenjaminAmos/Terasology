@@ -47,6 +47,7 @@ import org.terasology.input.events.MouseAxisEvent;
 import org.terasology.input.events.MouseButtonEvent;
 import org.terasology.input.events.MouseWheelEvent;
 import org.terasology.logic.players.LocalPlayer;
+import org.terasology.math.JomlUtil;
 import org.terasology.module.ModuleEnvironment;
 import org.terasology.network.ClientComponent;
 import org.terasology.nui.canvas.CanvasControl;
@@ -627,17 +628,17 @@ public class NUIManagerInternal extends BaseComponentSystem implements NUIManage
             return;
         }
         if (focus != null) {
-            focus.onMouseButtonEvent(new NUIMouseButtonEvent(event.getButton(), event.getState(), event.getMousePosition()));
+            focus.onMouseButtonEvent(new NUIMouseButtonEvent(event.getButton(), event.getState(), JomlUtil.from(event.getMousePosition())));
             if (event.isConsumed()) {
                 return;
             }
         }
         if (event.isDown()) {
-            if (canvas.processMouseClick(event.getButton(), event.getMousePosition())) {
+            if (canvas.processMouseClick(event.getButton(), JomlUtil.from(event.getMousePosition()))) {
                 event.consume();
             }
         } else {
-            if (canvas.processMouseRelease(event.getButton(), event.getMousePosition())) {
+            if (canvas.processMouseRelease(event.getButton(), JomlUtil.from(event.getMousePosition()))) {
                 event.consume();
             }
         }
@@ -654,7 +655,7 @@ public class NUIManagerInternal extends BaseComponentSystem implements NUIManage
         }
 
         if (focus != null) {
-            NUIMouseWheelEvent nuiEvent = new NUIMouseWheelEvent(mouse, keyboard, event.getMousePosition(), event.getWheelTurns());
+            NUIMouseWheelEvent nuiEvent = new NUIMouseWheelEvent(mouse, keyboard, JomlUtil.from(event.getMousePosition()), event.getWheelTurns());
             focus.onMouseWheelEvent(nuiEvent);
             if (nuiEvent.isConsumed()) {
                 event.consume();

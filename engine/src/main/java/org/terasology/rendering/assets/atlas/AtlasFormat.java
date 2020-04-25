@@ -20,6 +20,8 @@ import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import org.joml.Rectanglef;
+import org.joml.Vector2f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.assets.ResourceUrn;
@@ -27,10 +29,9 @@ import org.terasology.assets.format.AbstractAssetFileFormat;
 import org.terasology.assets.format.AssetDataFile;
 import org.terasology.assets.management.AssetManager;
 import org.terasology.assets.module.annotations.RegisterAssetFileFormat;
-import org.terasology.math.geom.Rect2f;
-import org.terasology.math.geom.Vector2f;
 import org.terasology.math.geom.Vector2i;
 import org.terasology.naming.Name;
+import org.terasology.nui.util.RectUtility;
 import org.terasology.rendering.assets.texture.Texture;
 import org.terasology.rendering.assets.texture.subtexture.SubtextureData;
 import org.terasology.utilities.gson.legacy.LegacyVector2iTypeAdapter;
@@ -55,7 +56,7 @@ public class AtlasFormat extends AbstractAssetFileFormat<AtlasData> {
     public AtlasFormat(AssetManager assetManager) {
         super("atlas");
         this.assetManager = assetManager;
-        gson = new GsonBuilder().registerTypeAdapter(Vector2i.class, new LegacyVector2iTypeAdapter()).create();
+        gson = new GsonBuilder().registerTypeAdapter(org.terasology.math.geom.Vector2i.class, new LegacyVector2iTypeAdapter()).create();
     }
 
     @Override
@@ -109,10 +110,10 @@ public class AtlasFormat extends AbstractAssetFileFormat<AtlasData> {
         Vector2f min = new Vector2f((float) freeform.getMin().x / size.x, (float) freeform.getMin().y / size.y);
         if (freeform.getSize() != null) {
             Vector2f itemSize = new Vector2f((float) freeform.getSize().x / size.x, (float) freeform.getSize().y / size.y);
-            out.put(new Name(freeform.getName()), new SubtextureData(texture, Rect2f.createFromMinAndSize(min, itemSize)));
+            out.put(new Name(freeform.getName()), new SubtextureData(texture, RectUtility.createFromMinAndSize(min, itemSize)));
         } else if (freeform.getMax() != null) {
             Vector2f max = new Vector2f((float) freeform.getMax().x / size.x, (float) freeform.getMax().y / size.y);
-            out.put(new Name(freeform.getName()), new SubtextureData(texture, Rect2f.createFromMinAndMax(min, max)));
+            out.put(new Name(freeform.getName()), new SubtextureData(texture, new Rectanglef(min, max)));
         }
     }
 
@@ -138,7 +139,7 @@ public class AtlasFormat extends AbstractAssetFileFormat<AtlasData> {
                 Vector2f pos = new Vector2f(offset);
                 pos.x += tileX * tileSize.x;
                 pos.y += tileY * tileSize.y;
-                Rect2f tileLocation = Rect2f.createFromMinAndSize(offset.x + tileX * tileSize.x, offset.y + tileY * tileSize.y, tileSize.x, tileSize.y);
+                Rectanglef tileLocation = RectUtility.createFromMinAndSize(offset.x + tileX * tileSize.x, offset.y + tileY * tileSize.y, tileSize.x, tileSize.y);
                 out.put(new Name(name), new SubtextureData(texture, tileLocation));
             }
 

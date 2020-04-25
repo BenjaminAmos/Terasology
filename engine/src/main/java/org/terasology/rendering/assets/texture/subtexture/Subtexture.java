@@ -15,13 +15,14 @@
  */
 package org.terasology.rendering.assets.texture.subtexture;
 
+import org.joml.Rectanglef;
+import org.joml.Rectanglei;
+import org.joml.Vector2i;
 import org.terasology.assets.Asset;
 import org.terasology.assets.AssetType;
 import org.terasology.assets.ResourceUrn;
-import org.terasology.math.geom.Rect2f;
-import org.terasology.math.geom.Rect2i;
 import org.terasology.math.TeraMath;
-import org.terasology.math.geom.Vector2i;
+import org.terasology.nui.util.RectUtility;
 import org.terasology.rendering.assets.texture.Texture;
 import org.terasology.rendering.assets.texture.TextureRegionAsset;
 
@@ -32,7 +33,7 @@ import java.util.Optional;
 public class Subtexture extends TextureRegionAsset<SubtextureData> {
 
     private Texture texture;
-    private Rect2f subregion;
+    private Rectanglef subregion;
     private Runnable disposalAction;
 
     public Subtexture(ResourceUrn urn, AssetType<?, SubtextureData> assetType, SubtextureData data) {
@@ -62,24 +63,24 @@ public class Subtexture extends TextureRegionAsset<SubtextureData> {
     }
 
     @Override
-    public Rect2f getRegion() {
+    public Rectanglef getRegion() {
         return subregion;
     }
 
     @Override
-    public Rect2i getPixelRegion() {
-        return Rect2i.createFromMinAndSize(TeraMath.floorToInt(subregion.minX() * texture.getWidth()),
-                TeraMath.floorToInt(subregion.minY() * texture.getHeight()), getWidth(), getHeight());
+    public Rectanglei getPixelRegion() {
+        return RectUtility.createFromMinAndSize(TeraMath.floorToInt(subregion.minX * texture.getWidth()),
+                TeraMath.floorToInt(subregion.minY * texture.getHeight()), getWidth(), getHeight());
     }
 
     @Override
     public int getWidth() {
-        return TeraMath.ceilToInt(texture.getWidth() * subregion.width());
+        return TeraMath.ceilToInt(texture.getWidth() * subregion.lengthX());
     }
 
     @Override
     public int getHeight() {
-        return TeraMath.ceilToInt(texture.getHeight() * subregion.height());
+        return TeraMath.ceilToInt(texture.getHeight() * subregion.lengthY());
     }
 
     @Override

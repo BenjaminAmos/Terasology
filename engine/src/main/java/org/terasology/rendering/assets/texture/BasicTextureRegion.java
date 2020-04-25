@@ -15,25 +15,26 @@
  */
 package org.terasology.rendering.assets.texture;
 
-import org.terasology.math.geom.Rect2f;
-import org.terasology.math.geom.Rect2i;
+import org.joml.Rectanglef;
+import org.joml.Rectanglei;
+import org.joml.Vector2f;
+import org.joml.Vector2i;
 import org.terasology.math.TeraMath;
-import org.terasology.math.geom.Vector2f;
-import org.terasology.math.geom.Vector2i;
+import org.terasology.nui.util.RectUtility;
 
 /**
  */
 public class BasicTextureRegion implements TextureRegion {
     private Texture texture;
-    private Rect2f region;
+    private Rectanglef region;
 
-    public BasicTextureRegion(Texture texture, Rect2f region) {
+    public BasicTextureRegion(Texture texture, Rectanglef region) {
         this.texture = texture;
         this.region = region;
     }
 
     public BasicTextureRegion(Texture texture, Vector2f offset, Vector2f size) {
-        this(texture, Rect2f.createFromMinAndSize(offset, size));
+        this(texture, RectUtility.createFromMinAndSize(offset, size));
     }
 
     @Override
@@ -42,18 +43,18 @@ public class BasicTextureRegion implements TextureRegion {
     }
 
     @Override
-    public Rect2f getRegion() {
+    public Rectanglef getRegion() {
         return region;
     }
 
     @Override
     public int getWidth() {
-        return TeraMath.ceilToInt(texture.getWidth() * region.width());
+        return TeraMath.ceilToInt(texture.getWidth() * region.lengthX());
     }
 
     @Override
     public int getHeight() {
-        return TeraMath.ceilToInt(texture.getHeight() * region.height());
+        return TeraMath.ceilToInt(texture.getHeight() * region.lengthY());
     }
 
     @Override
@@ -62,8 +63,8 @@ public class BasicTextureRegion implements TextureRegion {
     }
 
     @Override
-    public Rect2i getPixelRegion() {
-        return Rect2i.createFromMinAndSize(TeraMath.floorToInt(region.minX() * texture.getWidth()),
-                TeraMath.floorToInt(region.minY() * texture.getHeight()), getWidth(), getHeight());
+    public Rectanglei getPixelRegion() {
+        return RectUtility.createFromMinAndSize(TeraMath.floorToInt(region.minX * texture.getWidth()),
+                TeraMath.floorToInt(region.minY * texture.getHeight()), getWidth(), getHeight());
     }
 }

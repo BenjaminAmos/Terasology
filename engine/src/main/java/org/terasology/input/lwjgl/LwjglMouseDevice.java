@@ -16,6 +16,7 @@
 package org.terasology.input.lwjgl;
 
 import com.google.common.collect.Queues;
+import org.joml.Vector2i;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.terasology.config.Config;
@@ -25,7 +26,6 @@ import org.terasology.input.ButtonState;
 import org.terasology.input.InputType;
 import org.terasology.input.device.MouseAction;
 import org.terasology.input.device.MouseDevice;
-import org.terasology.math.geom.Vector2i;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -46,7 +46,7 @@ public class LwjglMouseDevice implements MouseDevice, PropertyChangeListener {
 
     @Override
     public Vector2i getPosition() {
-        return new Vector2i(Mouse.getX() / this.uiScale, (Display.getHeight() - Mouse.getY()) / this.uiScale);
+        return new Vector2i((int)(Mouse.getX() / this.uiScale), (int)((Display.getHeight() - Mouse.getY()) / this.uiScale));
     }
 
     @Override

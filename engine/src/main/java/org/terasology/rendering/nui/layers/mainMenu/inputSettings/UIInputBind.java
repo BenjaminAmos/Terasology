@@ -15,6 +15,7 @@
  */
 package org.terasology.rendering.nui.layers.mainMenu.inputSettings;
 
+import org.joml.Vector2i;
 import org.terasology.audio.StaticSound;
 import org.terasology.input.Input;
 import org.terasology.input.InputType;
@@ -22,7 +23,6 @@ import org.terasology.input.MouseInput;
 import org.terasology.input.events.MouseButtonEvent;
 import org.terasology.input.events.MouseWheelEvent;
 import org.terasology.math.JomlUtil;
-import org.terasology.math.geom.Vector2i;
 import org.terasology.nui.Canvas;
 import org.terasology.nui.asset.font.Font;
 import org.terasology.nui.BaseInteractionListener;
@@ -97,8 +97,8 @@ public class UIInputBind extends CoreWidget {
         } else if (newInput != null) {
             text = newInput.getDisplayName();
         }
-        List<String> lines = TextLineBuilder.getLines(font, text, areaHint.getX());
-        return JomlUtil.from(font.getSize(lines));
+        List<String> lines = TextLineBuilder.getLines(font, text, areaHint.x);
+        return font.getSize(lines);
     }
 
     @Override

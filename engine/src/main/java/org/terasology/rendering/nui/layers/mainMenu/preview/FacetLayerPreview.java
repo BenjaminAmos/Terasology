@@ -21,9 +21,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.math.Region3i;
 import org.terasology.math.geom.ImmutableVector2i;
-import org.terasology.math.geom.Rect2i;
+import org.joml.Rectanglei;
 import org.terasology.math.geom.Vector3i;
 import org.terasology.module.ModuleEnvironment;
+import org.terasology.nui.util.RectUtility;
 import org.terasology.rendering.assets.texture.TextureData;
 import org.terasology.rendering.nui.layers.mainMenu.ProgressListener;
 import org.terasology.world.chunks.ChunkConstants;
@@ -106,8 +107,8 @@ public class FacetLayerPreview implements PreviewGenerator {
 
         worldGenerator.getWorld(); // trigger building the World now
 
-        Rect2i worldArea = Rect2i.createFromMinAndSize(offX, offY, width * scale, height * scale);
-        Rect2i tileArea = worldToTileArea(worldArea);
+        Rectanglei worldArea = RectUtility.createFromMinAndSize(offX, offY, width * scale, height * scale);
+        Rectanglei tileArea = worldToTileArea(worldArea);
         AtomicInteger tilesComplete = new AtomicInteger(0);
         int tileCount = tileArea.area();
 
@@ -122,8 +123,8 @@ public class FacetLayerPreview implements PreviewGenerator {
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
         Map<ImmutableVector2i, Future<BufferedImage>> imageFutures = new HashMap<>(tileCount);
-        for (int z = tileArea.minY(); z < tileArea.maxY(); z++) {
-            for (int x = tileArea.minX(); x < tileArea.maxX(); x++) {
+        for (int z = tileArea.minY; z < tileArea.maxY; z++) {
+            for (int x = tileArea.minX; x < tileArea.maxX; x++) {
                 ImmutableVector2i pos = new ImmutableVector2i(x, z);
                 imageFutures.put(pos, threadPool.submit(() -> {
                     Region createRegion = createRegion(pos);
@@ -136,8 +137,8 @@ public class FacetLayerPreview implements PreviewGenerator {
             }
         }
 
-        for (int z = tileArea.minY(); z < tileArea.maxY(); z++) {
-            for (int x = tileArea.minX(); x < tileArea.maxX(); x++) {
+        for (int z = tileArea.minY; z < tileArea.maxY; z++) {
+            for (int x = tileArea.minX; x < tileArea.maxX; x++) {
                 ImmutableVector2i pos = new ImmutableVector2i(x, z);
                 try {
                     BufferedImage tileImage = imageFutures.get(pos).get();
@@ -154,8 +155,8 @@ public class FacetLayerPreview implements PreviewGenerator {
 
         // draw coordinate lines through 0 / 0
         g.setColor(Color.GRAY);
-        g.drawLine(worldArea.minX(), 0, worldArea.maxX(), 0);
-        g.drawLine(0, worldArea.minY(), 0, worldArea.maxY());
+        g.drawLine(worldArea.minX, 0, worldArea.maxX, 0);
+        g.drawLine(0, worldArea.minY, 0, worldArea.maxY);
 
         g.dispose();
 
@@ -184,14 +185,14 @@ public class FacetLayerPreview implements PreviewGenerator {
         return region;
     }
 
-    private static Rect2i worldToTileArea(Rect2i area) {
-        int chunkMinX = IntMath.divide(area.minX(), TILE_SIZE_X, RoundingMode.FLOOR);
-        int chunkMinZ = IntMath.divide(area.minY(), TILE_SIZE_Y, RoundingMode.FLOOR);
+    private static Rectanglei worldToTileArea(Rectanglei area) {
+        int chunkMinX = IntMath.divide(area.minX, TILE_SIZE_X, RoundingMode.FLOOR);
+        int chunkMinZ = IntMath.divide(area.minY, TILE_SIZE_Y, RoundingMode.FLOOR);
 
-        int chunkMaxX = IntMath.divide(area.maxX(), TILE_SIZE_X, RoundingMode.CEILING);
-        int chunkMaxZ = IntMath.divide(area.maxY(), TILE_SIZE_Y, RoundingMode.CEILING);
+        int chunkMaxX = IntMath.divide(area.maxX, TILE_SIZE_X, RoundingMode.CEILING);
+        int chunkMaxZ = IntMath.divide(area.maxY, TILE_SIZE_Y, RoundingMode.CEILING);
 
-        return Rect2i.createFromMinAndMax(chunkMinX, chunkMinZ, chunkMaxX, chunkMaxZ);
+        return new Rectanglei(chunkMinX, chunkMinZ, chunkMaxX, chunkMaxZ);
     }
 
     /**

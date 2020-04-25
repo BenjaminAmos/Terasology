@@ -17,9 +17,9 @@ package org.terasology.input.device.nulldevices;
 
 import com.google.common.collect.Queues;
 
+import org.joml.Vector2i;
 import org.terasology.input.device.MouseAction;
 import org.terasology.input.device.MouseDevice;
-import org.terasology.math.geom.Vector2i;
 
 import java.util.Queue;
 

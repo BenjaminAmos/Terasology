@@ -16,11 +16,12 @@
 
 package org.terasology.math;
 
+import org.joml.Rectanglei;
+import org.joml.Vector2i;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.terasology.math.geom.Rect2i;
-import org.terasology.math.geom.Vector2i;
-import org.terasology.math.geom.Border;
+import org.terasology.nui.Border;
+import org.terasology.nui.util.RectUtility;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -34,13 +35,13 @@ public class BorderTest {
 
     @Test
     public void shrinkSameBorderAndRegionSize() {
-        assertEquals(border.shrink(Rect2i.createFromMinAndSize(10, 10, 10, 10)), Rect2i.EMPTY);
+        assertEquals(border.shrink(RectUtility.createFromMinAndSize(10, 10, 10, 10)), new Rectanglei());
     }
 
     @Test
     public void shrinkBorder() {
-        assertEquals(border.shrink(Rect2i.createFromMinAndSize(30, 30, 30, 30)),
-            Rect2i.createFromMinAndSize(40, 40, 10, 10));
+        assertEquals(border.shrink(RectUtility.createFromMinAndSize(30, 30, 30, 30)),
+            RectUtility.createFromMinAndSize(40, 40, 10, 10));
     }
 
     @Test
@@ -66,14 +67,14 @@ public class BorderTest {
 
     @Test
     public void growBorder() {
-        assertEquals(border.grow(Rect2i.createFromMinAndSize(30, 30, 30, 30)),
-            Rect2i.createFromMinAndSize(20, 20, 50, 50));
+        assertEquals(border.grow(RectUtility.createFromMinAndSize(30, 30, 30, 30)),
+            RectUtility.createFromMinAndSize(20, 20, 50, 50));
     }
 
     @Test
     public void growBorderMax() {
-        assertEquals(border.grow(Rect2i.createFromMinAndSize(10, 10, Integer.MAX_VALUE,
-            Integer.MAX_VALUE)), Rect2i.createFromMinAndSize(0, 0, Integer.MAX_VALUE,
+        assertEquals(border.grow(RectUtility.createFromMinAndSize(10, 10, Integer.MAX_VALUE,
+            Integer.MAX_VALUE)), RectUtility.createFromMinAndSize(0, 0, Integer.MAX_VALUE,
             Integer.MAX_VALUE));
     }
 }

@@ -52,6 +52,7 @@ import org.terasology.input.events.RightMouseUpButtonEvent;
 import org.terasology.input.internal.AbstractBindableAxis;
 import org.terasology.input.internal.BindableRealAxis;
 import org.terasology.logic.players.LocalPlayer;
+import org.terasology.math.JomlUtil;
 import org.terasology.math.geom.Vector2i;
 import org.terasology.registry.In;
 
@@ -175,7 +176,7 @@ public class InputSystem extends BaseComponentSystem {
             return;
         }
 
-        Vector2i deltaMouse = mouse.getDelta();
+        Vector2i deltaMouse = JomlUtil.from(mouse.getDelta());
         //process mouse movement x axis
         if (deltaMouse.x != 0) {
             float xValue = deltaMouse.x * inputDeviceConfig.getMouseSensitivity();
@@ -216,7 +217,7 @@ public class InputSystem extends BaseComponentSystem {
         int id = action.getInput().getId();
         if (id != MouseInput.NONE.getId()) {
             MouseInput button = MouseInput.find(action.getInput().getType(), action.getInput().getId());
-            boolean consumed = sendMouseEvent(button, action.getState().isDown(), action.getMousePosition(), delta);
+            boolean consumed = sendMouseEvent(button, action.getState().isDown(), JomlUtil.from(action.getMousePosition()), delta);
             BindableButton bind = bindsManager.getMouseButtonBinds().get(button);
             if (bind != null) {
                 updateBindState(bind, action.getInput(), action.getState().isDown(), delta, consumed);
@@ -233,7 +234,7 @@ public class InputSystem extends BaseComponentSystem {
     private void processMouseWheelInput(float delta, MouseAction action) {
         int dir = action.getInput().getId();
         if (dir != 0 && action.getTurns() != 0) {
-            boolean consumed = sendMouseWheelEvent(action.getMousePosition(), dir * action.getTurns(), delta);
+            boolean consumed = sendMouseWheelEvent(JomlUtil.from(action.getMousePosition()), dir * action.getTurns(), delta);
             BindableButton bind = (dir == 1) ? bindsManager.getMouseWheelUpBind() : bindsManager.getMouseWheelDownBind();
             if (bind != null) {
                 for (int i = 0; i < action.getTurns(); ++i) {
