@@ -15,6 +15,8 @@
  */
 package org.terasology.engine.entitySystem;
 
+import org.terasology.context.annotation.IndexInherited;
+
 /**
  * A Component is (a collection of) <b>data</b> that
  * <ul>
@@ -23,6 +25,7 @@ package org.terasology.engine.entitySystem;
  * </ul>
  *
  */
+@IndexInherited
 public interface Component {
 
 }

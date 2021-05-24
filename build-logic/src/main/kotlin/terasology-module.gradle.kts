@@ -67,8 +67,14 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 
     testImplementation("org.mockito:mockito-junit-jupiter:3.7.7")
+
+    annotationProcessor("org.terasology.gestalt:gestalt-inject-java:8.0.0-SNAPSHOT")
 }
 
+tasks.withType<JavaCompile> {
+    inputs.files(sourceSets.main.get().resources.srcDirs)
+    options.compilerArgs.add("-Aresource=${sourceSets.main.get().resources.srcDirs.joinToString(File.pathSeparator)}")
+}
 
 if (project.name == "ModuleTestingEnvironment") {
     dependencies {

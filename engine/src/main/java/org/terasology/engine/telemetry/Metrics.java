@@ -25,7 +25,7 @@ import org.terasology.gestalt.module.dependencyresolution.DependencyResolver;
 import org.terasology.gestalt.module.dependencyresolution.ResolutionResult;
 import org.terasology.gestalt.module.predicates.FromModule;
 import org.terasology.gestalt.module.resources.DirectoryFileSource;
-import org.terasology.gestalt.module.sandbox.API;
+import org.terasology.context.annotation.API;
 import org.terasology.gestalt.naming.Name;
 import org.terasology.engine.telemetry.metrics.Metric;
 

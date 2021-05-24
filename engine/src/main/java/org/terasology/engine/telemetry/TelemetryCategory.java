@@ -15,7 +15,8 @@
  */
 package org.terasology.engine.telemetry;
 
-import org.terasology.gestalt.module.sandbox.API;
+import org.terasology.context.annotation.API;
+import org.terasology.context.annotation.Index;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -27,6 +28,7 @@ import java.lang.annotation.Target;
  * The {@link org.terasology.engine.telemetry.TelemetryScreen} find telemetry information via this annotation.
  */
 @API
+@Index
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface TelemetryCategory {

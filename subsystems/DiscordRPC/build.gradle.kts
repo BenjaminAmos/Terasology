@@ -12,4 +12,6 @@ dependencies {
     implementation(project(":engine"))
     api("com.jagrosh:DiscordIPC:0.4")
     implementation("ch.qos.logback:logback-classic:1.2.3")
+
+    annotationProcessor("org.terasology.gestalt:gestalt-inject-java:8.0.0-SNAPSHOT")
 }

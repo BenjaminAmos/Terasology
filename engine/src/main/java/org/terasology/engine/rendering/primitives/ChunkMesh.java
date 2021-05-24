@@ -12,7 +12,7 @@ import org.joml.Vector3fc;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL15;
-import org.terasology.gestalt.module.sandbox.API;
+import org.terasology.context.annotation.API;
 import org.terasology.engine.rendering.VertexBufferObjectUtil;
 import org.terasology.engine.rendering.assets.material.Material;
 

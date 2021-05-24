@@ -9,7 +9,7 @@ import org.terasology.engine.rendering.assets.texture.TextureUtil;
 import org.terasology.gestalt.assets.AssetDataProducer;
 import org.terasology.gestalt.assets.ResourceUrn;
 import org.terasology.gestalt.assets.module.annotations.RegisterAssetDataProducer;
-import org.terasology.gestalt.module.sandbox.API;
+import org.terasology.context.annotation.API;
 import org.terasology.gestalt.naming.Name;
 
 import java.io.IOException;

@@ -20,7 +20,7 @@ import com.google.common.collect.SortedSetMultimap;
 import org.terasology.engine.core.module.ExternalApiWhitelist;
 import org.terasology.engine.core.module.ModuleManager;
 import org.terasology.gestalt.module.ModuleEnvironment;
-import org.terasology.gestalt.module.sandbox.API;
+import org.terasology.context.annotation.API;
 import org.terasology.engine.testUtil.ModuleManagerFactory;
 
 import java.net.URL;

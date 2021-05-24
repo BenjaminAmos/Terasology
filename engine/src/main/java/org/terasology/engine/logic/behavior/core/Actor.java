@@ -12,7 +12,7 @@ import org.terasology.engine.entitySystem.entity.EntityRef;
 import org.terasology.engine.entitySystem.metadata.ComponentLibrary;
 import org.terasology.engine.entitySystem.metadata.ComponentMetadata;
 import org.terasology.engine.entitySystem.metadata.EntitySystemLibrary;
-import org.terasology.gestalt.module.sandbox.API;
+import org.terasology.context.annotation.API;
 import org.terasology.reflection.metadata.FieldMetadata;
 import org.terasology.engine.registry.CoreRegistry;
 

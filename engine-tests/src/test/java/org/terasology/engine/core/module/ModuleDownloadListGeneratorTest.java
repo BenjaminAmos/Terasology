@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.reflections.Reflections;
 import org.terasology.engine.core.TerasologyConstants;
+import org.terasology.gestalt.di.index.UrlClassIndex;
 import org.terasology.gestalt.module.Module;
 import org.terasology.gestalt.module.ModuleMetadata;
 import org.terasology.gestalt.module.ModuleRegistry;
@@ -86,7 +87,7 @@ public class ModuleDownloadListGeneratorTest {
         if (version != null) {
             metadata.setVersion(new Version(version));
         }
-        return new Module(metadata, new EmptyFileSource(), Collections.emptyList(), new Reflections(), (c) -> false);
+        return new Module(metadata, new EmptyFileSource(), Collections.emptyList(), UrlClassIndex.byClassLoader(), (c) -> false);
     }
     private Module buildEngineModule(String version) {
         return buildSimpleModule(TerasologyConstants.ENGINE_MODULE.toString(), version);

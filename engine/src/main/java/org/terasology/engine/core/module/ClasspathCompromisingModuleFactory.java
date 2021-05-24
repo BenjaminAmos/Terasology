@@ -39,7 +39,7 @@ class ClasspathCompromisingModuleFactory extends ModuleFactory {
         Module module = super.createDirectoryModule(metadata, directory);
         return new Module(
                 module.getMetadata(), module.getResources(),
-                module.getClasspaths(), module.getModuleManifest(),
+                module.getClasspaths(), module.getClassIndex(),
                 new ClassesInModule(module));
     }
 
@@ -48,7 +48,7 @@ class ClasspathCompromisingModuleFactory extends ModuleFactory {
         Module module = super.createArchiveModule(metadata, archive);
         return new Module(
                 module.getMetadata(), module.getResources(),
-                module.getClasspaths(), module.getModuleManifest(),
+                module.getClasspaths(), module.getClassIndex(),
                 new ClassesInModule(module));
     }
 
@@ -71,7 +71,8 @@ class ClasspathCompromisingModuleFactory extends ModuleFactory {
                     throw new RuntimeException(e);
                 }
             }).collect(ImmutableSet.toImmutableSet());
-            classLoaders = module.getModuleManifest().getConfiguration().getClassLoaders();
+            //classLoaders = module.getModuleManifest().getConfiguration().getClassLoaders();
+            classLoaders = new ClassLoader[0]; // TODO
             name = module.getId().toString();
         }
 

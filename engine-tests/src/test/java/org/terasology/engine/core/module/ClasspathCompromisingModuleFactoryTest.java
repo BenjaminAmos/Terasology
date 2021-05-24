@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.terasology.gestalt.module.Module;
 import org.terasology.gestalt.module.ModuleFactory;
 import org.terasology.gestalt.module.ModuleMetadata;
-import org.terasology.gestalt.module.sandbox.API;
+import org.terasology.context.annotation.API;
 import org.terasology.gestalt.naming.Name;
 import org.terasology.gestalt.naming.Version;
 import org.terasology.unittest.ExampleClass;
@@ -18,6 +18,7 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class ClasspathCompromisingModuleFactoryTest {
     final static Class<?> someClassOutsideTheModule = ClasspathCompromisingModuleFactory.class;
@@ -46,10 +47,14 @@ public class ClasspathCompromisingModuleFactoryTest {
 
         Module module = factory.createArchiveModule(new File("FIXME.jar"));
 
-        Class<?> someClassInTheModule = module.getModuleManifest().getTypesAnnotatedWith(API.class).iterator().next();
+        try {
+            Class<?> someClassInTheModule = Class.forName(module.getClassIndex().getTypesAnnotatedWith(API.class.getName()).iterator().next());
 
-        assertTrue(module.getClassPredicate().test(someClassInTheModule));
-        assertFalse(module.getClassPredicate().test(someClassOutsideTheModule));
+            assertTrue(module.getClassPredicate().test(someClassInTheModule));
+            assertFalse(module.getClassPredicate().test(someClassOutsideTheModule));
+        } catch (ClassNotFoundException ignore) {
+            fail();
+        }
     }
 
     @Test

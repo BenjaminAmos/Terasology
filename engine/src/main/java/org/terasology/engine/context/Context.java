@@ -15,7 +15,7 @@
  */
 package org.terasology.engine.context;
 
-import org.terasology.gestalt.module.sandbox.API;
+import org.terasology.context.annotation.API;
 
 /**
  * Provides classes with the utility objects that belong to the context they are running in.

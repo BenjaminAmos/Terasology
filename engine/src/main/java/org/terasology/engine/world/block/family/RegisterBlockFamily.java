@@ -3,6 +3,8 @@
 package org.terasology.engine.world.block.family;
 
 
+import org.terasology.context.annotation.Index;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -18,6 +20,7 @@ import java.lang.annotation.Target;
  * <code>@BlockSections({"first", "second", "third"})</code><br>
  * In this case, a block family named "painting" which has three different sections named "first, "second" and "third" will be registered.
  */
+@Index
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface RegisterBlockFamily {

@@ -10,7 +10,7 @@ import org.terasology.engine.rendering.primitives.ChunkMesh;
 import org.terasology.engine.world.block.Block;
 import org.terasology.engine.world.block.BlockRegionc;
 import org.terasology.protobuf.EntityData;
-import org.terasology.gestalt.module.sandbox.API;
+import org.terasology.context.annotation.API;
 
 /**
  * Chunks are a box-shaped logical grouping of Terasology's blocks, for performance reasons. 

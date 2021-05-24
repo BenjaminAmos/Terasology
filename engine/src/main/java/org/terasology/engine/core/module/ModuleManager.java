@@ -13,6 +13,10 @@ import org.terasology.engine.config.Config;
 import org.terasology.engine.config.SystemConfig;
 import org.terasology.engine.core.PathManager;
 import org.terasology.engine.core.TerasologyConstants;
+import org.terasology.gestalt.di.DefaultBeanContext;
+import org.terasology.gestalt.di.index.ClassIndex;
+import org.terasology.gestalt.di.index.CompoundClassIndex;
+import org.terasology.gestalt.di.index.UrlClassIndex;
 import org.terasology.gestalt.module.Module;
 import org.terasology.gestalt.module.ModuleEnvironment;
 import org.terasology.gestalt.module.ModuleFactory;
@@ -125,18 +129,21 @@ public class ModuleManager {
         Module packageModule = moduleFactory.createPackageModule("org.terasology.engine");
 
         // We need to add reflections from our subsystems and other classes.
-        ConfigurationBuilder config = new ConfigurationBuilder();
-        Reflections packageReflections = packageModule.getModuleManifest();
-        Set<Scanner> scanners = packageReflections.getConfiguration().getScanners();
-        config.setScanners(scanners.toArray(new Scanner[0]));
+        //ConfigurationBuilder config = new ConfigurationBuilder();
+        ClassIndex packageReflections = packageModule.getClassIndex();
+        //Set<Scanner> scanners = packageReflections.getConfiguration().getScanners();
+        //config.setScanners(scanners.toArray(new Scanner[0]));
 
+        CompoundClassIndex compoundIndex = new CompoundClassIndex();
+        compoundIndex.add(packageReflections);
         for (Class<?> aClass : classesOnClasspathsToAddToEngine) {
-            config.addUrls(ClasspathHelper.forClass(aClass));
+            //config.addUrls(ClasspathHelper.forClass(aClass));
+            compoundIndex.add(UrlClassIndex.byClassLoader(aClass.getClassLoader()));
         }
 
         // TODO: is this using reflections.cache?
-        Reflections reflectionsWithSubsystems = new Reflections(config);
-        packageReflections.merge(reflectionsWithSubsystems);
+        //Reflections reflectionsWithSubsystems = new Reflections(config);
+        //packageReflections.merge(reflectionsWithSubsystems);
 
         // We need the class predicate to include classes in subsystems and whatnot. We can't change it in an
         // existing module, so make a new one based on the one from the moduleFactory.
@@ -144,10 +151,10 @@ public class ModuleManager {
                 packageModule.getMetadata(),
                 packageModule.getResources(),
                 Collections.emptyList(),
-                packageReflections,
-                packageModule.getClassPredicate().or(clazz ->
-                        reflectionsWithSubsystems.getConfiguration()
-                                .getUrls().contains(ClasspathHelper.forClass(clazz)))
+                compoundIndex,
+                x -> true//packageModule.getClassPredicate().or(clazz ->
+                //        reflectionsWithSubsystems.getConfiguration()
+                //                .getUrls().contains(ClasspathHelper.forClass(clazz)))
         );
 
         registry.add(engine);
@@ -179,8 +186,8 @@ public class ModuleManager {
         ExternalApiWhitelist.PACKAGES.stream().forEach(packagee ->
                 permissionProviderFactory.getBasePermissionSet().addAPIPackage(packagee));
 
-        APIScanner apiScanner = new APIScanner(permissionProviderFactory);
-        registry.stream().map(Module::getModuleManifest).forEach(apiScanner::scan);
+        //APIScanner apiScanner = new APIScanner(permissionProviderFactory);
+        //registry.stream().map(Module::getModuleManifest).forEach(apiScanner::scan);
 
         permissionProviderFactory.getBasePermissionSet().grantPermission("com.google.gson", ReflectPermission.class);
         permissionProviderFactory.getBasePermissionSet().grantPermission("com.google.gson.internal", ReflectPermission.class);
@@ -246,9 +253,9 @@ public class ModuleManager {
         ModuleEnvironment newEnvironment;
         boolean permissiveSecurityEnabled = Boolean.parseBoolean(System.getProperty(SystemConfig.PERMISSIVE_SECURITY_ENABLED_PROPERTY));
         if (permissiveSecurityEnabled) {
-            newEnvironment = new ModuleEnvironment(finalModules, wrappingPermissionProviderFactory);
+            newEnvironment = new ModuleEnvironment(new DefaultBeanContext(), finalModules, wrappingPermissionProviderFactory);
         } else {
-            newEnvironment = new ModuleEnvironment(finalModules, permissionProviderFactory);
+            newEnvironment = new ModuleEnvironment(new DefaultBeanContext(), finalModules, permissionProviderFactory);
         }
         if (asPrimary) {
             environment = newEnvironment;

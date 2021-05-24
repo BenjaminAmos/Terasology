@@ -15,9 +15,12 @@
  */
 package org.terasology.engine.entitySystem.event;
 
+import org.terasology.context.annotation.IndexInherited;
+
 /**
  * Marker interface for classes that can be sent to entities as events
  *
  */
+@IndexInherited
 public interface Event {
 }

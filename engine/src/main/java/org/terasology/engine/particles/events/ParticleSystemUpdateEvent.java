@@ -16,7 +16,7 @@
 package org.terasology.engine.particles.events;
 
 import org.terasology.engine.entitySystem.event.Event;
-import org.terasology.gestalt.module.sandbox.API;
+import org.terasology.context.annotation.API;
 
 /**
  * Fired to notify the ParticleSystemManager that a system needs to be reconfigured.

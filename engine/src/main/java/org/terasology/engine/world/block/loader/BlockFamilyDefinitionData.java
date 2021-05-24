@@ -5,7 +5,7 @@ package org.terasology.engine.world.block.loader;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.terasology.gestalt.assets.AssetData;
-import org.terasology.gestalt.module.sandbox.API;
+import org.terasology.context.annotation.API;
 import org.terasology.engine.world.block.family.AbstractBlockFamily;
 
 import java.util.List;

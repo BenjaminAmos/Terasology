@@ -193,6 +193,9 @@ public class NUIManagerInternal extends BaseComponentSystem implements NUIManage
             Name module = verifyNotNull(environment.getModuleProviding(type), "No module provides %s", type);
             widgetsLibrary.register(new ResourceUrn(module.toString(), type.getSimpleName()), type);
         }
+
+        // HACK: Interfaces are not registered in gestalt-8 as subtypes. Bug?
+        widgetsLibrary.register(new ResourceUrn(environment.getModuleProviding(UIScreenLayer.class).toString(), UIScreenLayer.class.getSimpleName()), UIScreenLayer.class);
     }
 
     @Override

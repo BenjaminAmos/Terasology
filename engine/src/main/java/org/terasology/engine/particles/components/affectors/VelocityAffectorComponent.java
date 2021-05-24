@@ -16,7 +16,7 @@
 package org.terasology.engine.particles.components.affectors;
 
 import org.terasology.engine.entitySystem.Component;
-import org.terasology.gestalt.module.sandbox.API;
+import org.terasology.context.annotation.API;
 
 /**
  *
