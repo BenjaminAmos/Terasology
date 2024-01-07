@@ -7,6 +7,7 @@ import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
+import org.terasology.engine.utilities.collection.LargeFloatArrayPool;
 import org.terasology.math.TeraMath;
 import org.terasology.engine.world.block.BlockArea;
 import org.terasology.engine.world.block.BlockAreac;
@@ -17,6 +18,7 @@ public class SubSampledNoise extends AbstractNoise {
     private Noise source;
     private Vector3f zoom = new Vector3f(1, 1, 1);
     private int sampleRate = 1;
+    private LargeFloatArrayPool floatArrayPool;
 
     /**
      * @param source     the source noise generator
@@ -31,6 +33,7 @@ public class SubSampledNoise extends AbstractNoise {
         this.source = source;
         this.zoom.set(zoom);
         this.sampleRate = sampleRate;
+        floatArrayPool = new LargeFloatArrayPool();
     }
 
     @Override
@@ -55,16 +58,44 @@ public class SubSampledNoise extends AbstractNoise {
         return noise(area, 1);
     }
 
+    public void noise(BlockAreac area, float[] result) {
+        noise(area, 1, result);
+    }
+
     public float[] noise(BlockAreac area, float scale) {
         BlockArea fullRegion = determineRequiredRegion(area);
         float[] keyData = getKeyValues(fullRegion, scale);
-        float[] fullData = mapExpand(keyData, fullRegion);
-        return getSubset(fullData, fullRegion, area);
+        if (area.getSizeX() == fullRegion.getSizeX() && area.getSizeY() == fullRegion.getSizeY()) {
+            float[] fullData = new float[fullRegion.getSizeX() * fullRegion.getSizeY()];
+            mapExpand(keyData, fullRegion, fullData);
+            floatArrayPool.returnArray(keyData);
+            return fullData;
+        } else {
+            float[] fullData = floatArrayPool.borrowArray(fullRegion.getSizeX() * fullRegion.getSizeY());
+            mapExpand(keyData, fullRegion, fullData);
+            floatArrayPool.returnArray(keyData);
+            float[] subsetData = getSubset(fullData, fullRegion, area, new float[area.getSizeX() * area.getSizeY()]);
+            floatArrayPool.returnArray(fullData);
+            return subsetData;
+        }
     }
 
-    private float[] getSubset(float[] fullData, BlockAreac fullRegion, BlockAreac subRegion) {
+    public void noise(BlockAreac area, float scale, float[] result) {
+        BlockArea fullRegion = determineRequiredRegion(area);
+        float[] keyData = getKeyValues(fullRegion, scale);
+        if (area.getSizeX() == fullRegion.getSizeX() && area.getSizeY() == fullRegion.getSizeY()) {
+            mapExpand(keyData, fullRegion, result);
+        } else {
+            float[] fullData = floatArrayPool.borrowArray(fullRegion.getSizeX() * fullRegion.getSizeY());
+            mapExpand(keyData, fullRegion, fullData);
+            getSubset(fullData, fullRegion, area, result);
+            floatArrayPool.returnArray(fullData);
+        }
+        floatArrayPool.returnArray(keyData);
+    }
+
+    private float[] getSubset(float[] fullData, BlockAreac fullRegion, BlockAreac subRegion, float[] result) {
         if (subRegion.getSizeX() != fullRegion.getSizeX() || subRegion.getSizeY() != fullRegion.getSizeY()) {
-            float[] result = new float[subRegion.getSizeX() * subRegion.getSizeY()];
             Vector2i offset = new Vector2i(subRegion.minX() - fullRegion.minX(), subRegion.minY() - fullRegion.minY());
             for (int y = 0; y < subRegion.getSizeY(); ++y) {
                 System.arraycopy(fullData, offset.x() + fullRegion.getSizeX() * (y + offset.y()), result,
@@ -76,8 +107,7 @@ public class SubSampledNoise extends AbstractNoise {
         }
     }
 
-    private float[] mapExpand(float[] keyData, BlockAreac fullRegion) {
-        float[] fullData = new float[fullRegion.getSizeX() * fullRegion.getSizeY()];
+    private void mapExpand(float[] keyData, BlockAreac fullRegion, float[] fullData) {
         int samplesX = fullRegion.getSizeX() / sampleRate + 1;
         int samplesY = fullRegion.getSizeY() / sampleRate + 1;
         for (int y = 0; y < samplesY - 1; y++) {
@@ -94,13 +124,12 @@ public class SubSampledNoise extends AbstractNoise {
                 }
             }
         }
-        return fullData;
     }
 
     private float[] getKeyValues(BlockAreac fullRegion, float scale) {
         int xDim = fullRegion.getSizeX() / sampleRate + 1;
         int yDim = fullRegion.getSizeY() / sampleRate + 1;
-        float[] fullData = new float[xDim * yDim];
+        float[] fullData = floatArrayPool.borrowArray(xDim * yDim);
         for (int y = 0; y < yDim; y++) {
             for (int x = 0; x < xDim; x++) {
                 int actualX = x * sampleRate + fullRegion.minX();
@@ -148,18 +177,36 @@ public class SubSampledNoise extends AbstractNoise {
         return noise(region, 1);
     }
 
+    public void noise(BlockRegion region, float[] result) {
+        noise(region, 1, result);
+    }
+
     public float[] noise(BlockRegion region, float scale) {
         BlockRegion fullRegion = determineRequiredRegion(region);
         float[] keyData = getKeyValues(fullRegion, scale);
-        float[] fullData = mapExpand(keyData, fullRegion);
-        return getSubset(fullData, fullRegion, region);
+        float[] fullData = mapExpand(keyData, fullRegion, new float[fullRegion.volume()]);
+        floatArrayPool.returnArray(keyData);
+        return getSubset(fullData, fullRegion, region, new float[region.getSizeX() * region.getSizeY() * region.getSizeZ()]);
     }
 
-    private float[] getSubset(float[] fullData, BlockRegion fullRegion, BlockRegion subRegion) {
+    public void noise(BlockRegion region, float scale, float[] result) {
+        BlockRegion fullRegion = determineRequiredRegion(region);
+        float[] keyData = getKeyValues(fullRegion, scale);
+        if (fullRegion.volume() == region.volume()) {
+            mapExpand(keyData, fullRegion, result);
+        } else {
+            float[] fullData = floatArrayPool.borrowArray(fullRegion.volume());
+            mapExpand(keyData, fullRegion, fullData);
+            getSubset(fullData, fullRegion, region, result);
+            floatArrayPool.returnArray(fullData);
+        }
+        floatArrayPool.returnArray(keyData);
+    }
+
+    private float[] getSubset(float[] fullData, BlockRegion fullRegion, BlockRegion subRegion, float[] result) {
         if (subRegion.getSizeX() != fullRegion.getSizeX()
                 || subRegion.getSizeY() != fullRegion.getSizeY()
                 || subRegion.getSizeZ() != fullRegion.getSizeZ()) {
-            float[] result = new float[subRegion.getSizeX() * subRegion.getSizeY() * subRegion.getSizeZ()];
             Vector3i offset = new Vector3i(subRegion.minX() - fullRegion.minX(),
                     subRegion.minY() - fullRegion.minY(),
                     subRegion.minZ() - fullRegion.minZ());
@@ -175,8 +222,7 @@ public class SubSampledNoise extends AbstractNoise {
         }
     }
 
-    private float[] mapExpand(float[] keyData, BlockRegion fullRegion) {
-        float[] fullData = new float[fullRegion.volume()];
+    private float[] mapExpand(float[] keyData, BlockRegion fullRegion, float[] fullData) {
         int samplesX = fullRegion.getSizeX() / sampleRate + 1;
         int samplesY = fullRegion.getSizeY() / sampleRate + 1;
         int samplesZ = fullRegion.getSizeZ() / sampleRate + 1;
@@ -213,7 +259,7 @@ public class SubSampledNoise extends AbstractNoise {
         int xDim = fullRegion.getSizeX() / sampleRate + 1;
         int yDim = fullRegion.getSizeY() / sampleRate + 1;
         int zDim = fullRegion.getSizeZ() / sampleRate + 1;
-        float[] fullData = new float[xDim * yDim * zDim];
+        float[] fullData = floatArrayPool.borrowArray(xDim * yDim * zDim);
         for (int z = 0; z < zDim; z++) {
             for (int y = 0; y < yDim; y++) {
                 for (int x = 0; x < xDim; x++) {

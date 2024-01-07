@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.terasology.engine.entitySystem.entity.EntityRef;
 import org.terasology.engine.entitySystem.entity.internal.EngineEntityManager;
 import org.terasology.engine.entitySystem.entity.internal.OwnershipHelper;
+import org.terasology.engine.monitoring.Activity;
+import org.terasology.engine.monitoring.PerformanceMonitor;
 import org.terasology.joml.geom.AABBfc;
 import org.terasology.engine.logic.location.LocationComponent;
 import org.terasology.gestalt.module.ModuleEnvironment;
@@ -36,6 +38,8 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * An abstract implementation of {@link StorageManager} that is able
@@ -93,17 +97,25 @@ public abstract class AbstractStorageManager implements StorageManager {
 
     @Override
     public ChunkStore loadChunkStore(Vector3ic chunkPos) {
-        byte[] chunkData = loadCompressedChunk(chunkPos);
+        byte[] chunkData;
+        try (Activity activity = PerformanceMonitor.startActivity("AbstractStorageManager::loadCompressedChunk")) {
+            chunkData = loadCompressedChunk(chunkPos);
+        }
+
+        PerformanceMonitor.startActivity("AbstractStorageManager::loadChunkStore 2");
         ChunkStore store = null;
         if (chunkData != null) {
             ByteArrayInputStream bais = new ByteArrayInputStream(chunkData);
             try (GZIPInputStream gzipIn = new GZIPInputStream(bais)) {
-                EntityData.ChunkStore storeData = EntityData.ChunkStore.parseFrom(gzipIn);
-                store = new ChunkStoreInternal(storeData, entityManager, blockManager, extraDataManager);
+                try (Activity activity = PerformanceMonitor.startActivity("ChunkStore::parseFrom && new ChunkStoreInternal")) {
+                    EntityData.ChunkStore storeData = EntityData.ChunkStore.parseFrom(gzipIn);
+                    store = new ChunkStoreInternal(storeData, entityManager, blockManager, extraDataManager);
+                }
             } catch (IOException e) {
                 logger.error("Failed to read existing saved chunk {}", chunkPos);
             }
         }
+        PerformanceMonitor.endActivity();
         return store;
     }
 
@@ -112,10 +124,19 @@ public abstract class AbstractStorageManager implements StorageManager {
         Vector3i chunkZipPos = storagePathProvider.getChunkZipPosition(chunkPos);
         Path chunkPath = storagePathProvider.getChunkZipPath(chunkZipPos);
         if (Files.isRegularFile(chunkPath)) {
-            try (FileSystem chunkZip = FileSystems.newFileSystem(chunkPath, (ClassLoader) null)) {
-                Path targetChunk = chunkZip.getPath(storagePathProvider.getChunkFilename(chunkPos));
-                if (Files.isRegularFile(targetChunk)) {
-                    chunkData = Files.readAllBytes(targetChunk);
+            PerformanceMonitor.startActivity("AbstractStorageManager::loadChunkZip new ZipFile");
+            try (ZipFile chunkZip = new ZipFile(chunkPath.toFile())) {
+                PerformanceMonitor.endActivity();
+                ZipEntry targetChunk;
+                try (Activity activity = PerformanceMonitor.startActivity("AbstractStorageManager::loadChunkZip ZipFile::getEntry")) {
+                    targetChunk = chunkZip.getEntry(storagePathProvider.getChunkFilename(chunkPos));
+                }
+                if (targetChunk != null) {
+                    try (Activity activity = PerformanceMonitor.startActivity("AbstractStorageManager::loadChunkZip readAllBytes")) {
+                        try (InputStream chunkDataStream = chunkZip.getInputStream(targetChunk)) {
+                            chunkData = chunkDataStream.readAllBytes();
+                        }
+                    }
                 }
             } catch (IOException e) {
                 logger.error("Failed to load chunk zip {}", chunkPath, e);
@@ -141,7 +162,9 @@ public abstract class AbstractStorageManager implements StorageManager {
 
     protected byte[] loadCompressedChunk(Vector3ic chunkPos) {
         if (isStoreChunksInZips()) {
-            return loadChunkZip(chunkPos);
+            try (Activity activity = PerformanceMonitor.startActivity("AbstractStorageManager::loadChunkZip")) {
+                return loadChunkZip(chunkPos);
+            }
         } else {
             Path chunkPath = storagePathProvider.getChunkPath(chunkPos);
             if (Files.isRegularFile(chunkPath)) {

@@ -40,7 +40,7 @@ public class ChunkProcessingPipeline {
 
     @SuppressWarnings("UnstableApiUsage")
     private static final int NUM_TASK_THREADS = constrainToRange(
-            Runtime.getRuntime().availableProcessors() - 1, 1, 8);
+            Runtime.getRuntime().availableProcessors() - 2, 1, 8);
     private static final Logger logger = LoggerFactory.getLogger(ChunkProcessingPipeline.class);
 
     private final List<ChunkTaskProvider> stages = Lists.newArrayList();

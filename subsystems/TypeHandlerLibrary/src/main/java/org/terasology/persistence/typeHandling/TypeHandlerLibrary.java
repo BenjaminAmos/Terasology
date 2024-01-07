@@ -21,6 +21,7 @@ import org.terasology.persistence.typeHandling.coreTypes.NumberTypeHandler;
 import org.terasology.persistence.typeHandling.coreTypes.RuntimeDelegatingTypeHandler;
 import org.terasology.persistence.typeHandling.coreTypes.StringTypeHandler;
 import org.terasology.persistence.typeHandling.coreTypes.factories.ArrayTypeHandlerFactory;
+import org.terasology.persistence.typeHandling.coreTypes.factories.ClassTypeHandlerFactory;
 import org.terasology.persistence.typeHandling.coreTypes.factories.CollectionTypeHandlerFactory;
 import org.terasology.persistence.typeHandling.coreTypes.factories.EnumTypeHandlerFactory;
 import org.terasology.persistence.typeHandling.coreTypes.factories.MapTypeHandlerFactory;
@@ -105,6 +106,7 @@ public class TypeHandlerLibrary {
 
         typeHandlerLibrary.addTypeHandlerFactory(new EnumTypeHandlerFactory());
         typeHandlerLibrary.addTypeHandlerFactory(new MapTypeHandlerFactory());
+        typeHandlerLibrary.addTypeHandlerFactory(new ClassTypeHandlerFactory());
     }
 
     /**

@@ -13,6 +13,7 @@ import org.terasology.engine.monitoring.ThreadMonitor;
 import javax.swing.JPanel;
 import javax.swing.JList;
 import javax.swing.JLabel;
+import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 import javax.swing.AbstractListModel;
@@ -46,7 +47,9 @@ public class PerformanceMonitorPanel extends JPanel {
         list.setCellRenderer(new PerformanceListRenderer(header));
         list.setVisible(true);
         add(header, BorderLayout.PAGE_START);
-        add(list, BorderLayout.CENTER);
+        JScrollPane scrollPane = new JScrollPane(list);
+        scrollPane.setVisible(true);
+        add(scrollPane, BorderLayout.CENTER);
     }
 
     public void stopThread() {
@@ -86,7 +89,8 @@ public class PerformanceMonitorPanel extends JPanel {
 
         @Override
         public int compareTo(Entry o) {
-            return name.compareTo(o.name);
+            // Sort in descending order by spikes.
+            return Double.compare(o.spike, spike);
         }
 
         @Override

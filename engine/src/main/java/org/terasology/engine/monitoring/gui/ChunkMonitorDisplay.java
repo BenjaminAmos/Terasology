@@ -150,8 +150,12 @@ public class ChunkMonitorDisplay extends JPanel {
 
     private Vector3i calcPlayerChunkPos() {
         final LocalPlayer p = CoreRegistry.get(LocalPlayer.class);
-        if (p != null) {
-            return Chunks.toChunkPos(p.getPosition(new Vector3f()), new Vector3i());
+        try {
+            if (p != null) {
+                return Chunks.toChunkPos(p.getPosition(new Vector3f()), new Vector3i());
+            }
+        } catch (Throwable ignore) {
+            // ignore
         }
         return null;
     }

@@ -8,6 +8,8 @@ import org.terasology.persistence.serializers.DeserializeFieldCheck;
 import org.terasology.reflection.metadata.ClassMetadata;
 import org.terasology.reflection.metadata.FieldMetadata;
 
+import java.lang.reflect.Modifier;
+
 /**
  * Interface for providing serializers with a method to check whether a given field should be serialized.
  *

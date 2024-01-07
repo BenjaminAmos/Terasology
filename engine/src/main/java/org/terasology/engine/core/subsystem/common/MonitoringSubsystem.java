@@ -17,6 +17,7 @@ import org.terasology.engine.config.SystemConfig;
 import org.terasology.engine.context.Context;
 import org.terasology.engine.core.GameEngine;
 import org.terasology.engine.core.Time;
+import org.terasology.engine.core.modes.GameState;
 import org.terasology.engine.core.subsystem.EngineSubsystem;
 import org.terasology.engine.monitoring.gui.AdvancedMonitor;
 
@@ -76,6 +77,13 @@ public class MonitoringSubsystem implements EngineSubsystem {
         }, Clock.SYSTEM);
         Metrics.addRegistry(jmxMeterRegistry);
 
+        jdk.jfr.FlightRecorder.addPeriodicEvent(FpsEvent.class, () -> {
+            FpsEvent event = new FpsEvent();
+            event.begin();
+            event.fps = time.getFps();
+            event.commit();
+        });
+
         // If we want to make global metrics available to our custom view,
         // we add our custom registry to the global composite:
         //
@@ -84,6 +92,18 @@ public class MonitoringSubsystem implements EngineSubsystem {
         // If we want to see JVM metrics there as well:
         //
         // initAllJvmMetrics(DebugOverlay.meterRegistry);
+    }
+
+    @jdk.jfr.Name("Fps")
+    @jdk.jfr.Label("FPS")
+    @jdk.jfr.Category("Terasology")
+    @jdk.jfr.Description("The average frames per second value.")
+    @jdk.jfr.StackTrace(false)
+    @jdk.jfr.Period("10 ms")
+    private static final class FpsEvent extends jdk.jfr.Event {
+        @jdk.jfr.Label("FPS")
+        @jdk.jfr.Frequency
+        public float fps;
     }
 
     /**

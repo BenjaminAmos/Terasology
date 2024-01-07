@@ -85,7 +85,7 @@ public class PerformanceMonitorImpl implements PerformanceMonitorInternal {
         executionData.add(currentExecutionData);
         allocationData.add(currentAllocationData);
 
-        spikeData.forEachEntry(decayLargestExecutionTime);
+//        spikeData.forEachEntry(decayLargestExecutionTime);
         currentExecutionData.forEachEntry(updateExecutionTimeTotalAndSpikeData);
         currentAllocationData.forEachEntry(updateAllocatedMemoryTotal);
 

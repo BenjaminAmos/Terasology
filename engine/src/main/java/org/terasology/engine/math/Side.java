@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.terasology.engine.math;
 
-import com.google.common.collect.ImmutableList;
 import org.joml.Vector3fc;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
@@ -27,15 +26,15 @@ public enum Side {
     RIGHT(new Vector3i(1, 0, 0), (byte) 0b010000),          // 16
     BACK(new Vector3i(0, 0, 1), (byte) 0b100000);           // 32
 
-    public static final ImmutableList<Side> X_TANGENT_SIDE = ImmutableList.of(TOP, BOTTOM, FRONT, BACK);
-    public static final ImmutableList<Side> Y_TANGENT_SIDE = ImmutableList.of(LEFT, RIGHT, FRONT, BACK);
-    public static final ImmutableList<Side> Z_TANGENT_SIDE = ImmutableList.of(TOP, BOTTOM, LEFT, RIGHT);
+    public static final EnumSet<Side> X_TANGENT_SIDE = EnumSet.of(TOP, BOTTOM, FRONT, BACK);
+    public static final EnumSet<Side> Y_TANGENT_SIDE = EnumSet.of(LEFT, RIGHT, FRONT, BACK);
+    public static final EnumSet<Side> Z_TANGENT_SIDE = EnumSet.of(TOP, BOTTOM, LEFT, RIGHT);
 
-    public static final ImmutableList<Side> X_VERTICAL_SIDE = ImmutableList.of(LEFT, RIGHT);
-    public static final ImmutableList<Side> Y_VERTICAL_SIDE = ImmutableList.of(TOP, BOTTOM);
-    public static final ImmutableList<Side> Z_VERTICAL_SIDE = ImmutableList.of(FRONT, BACK);
+    public static final EnumSet<Side> X_VERTICAL_SIDE = EnumSet.of(LEFT, RIGHT);
+    public static final EnumSet<Side> Y_VERTICAL_SIDE = EnumSet.of(TOP, BOTTOM);
+    public static final EnumSet<Side> Z_VERTICAL_SIDE = EnumSet.of(FRONT, BACK);
 
-    private static final ImmutableList<Side> ALL_SIDES = ImmutableList.of(TOP, BOTTOM, LEFT, RIGHT, FRONT, BACK);
+    private static final EnumSet<Side> ALL_SIDES = EnumSet.of(TOP, BOTTOM, LEFT, RIGHT, FRONT, BACK);
     private final Vector3ic direction;
     private final byte flag;
 
@@ -85,7 +84,7 @@ public enum Side {
     /**
      * @return The horizontal sides, for iteration
      */
-    public static List<Side> horizontalSides() {
+    public static EnumSet<Side> horizontalSides() {
         return Y_TANGENT_SIDE;
     }
 
@@ -95,14 +94,14 @@ public enum Side {
      *
      * @return All available sides
      */
-    public static List<Side> allSides() {
+    public static EnumSet<Side> allSides() {
         return ALL_SIDES;
     }
 
     /**
      * @return The vertical sides, for iteration
      */
-    public static List<Side> verticalSides() {
+    public static EnumSet<Side> verticalSides() {
         return Y_VERTICAL_SIDE;
     }
 

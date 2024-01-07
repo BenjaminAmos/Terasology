@@ -30,6 +30,12 @@ public class BlockMeshPart {
     private int[] indices;
     private int texFrames;
 
+    // Cached Arrays
+    private ThreadLocal<float[]> lightsCached = ThreadLocal.withInitial(() -> new float[8]);
+    private ThreadLocal<float[]> blockLightsCached = ThreadLocal.withInitial(() -> new float[8]);
+    private ThreadLocal<Block[]> blocksCached = ThreadLocal.withInitial(() -> new Block[4]);
+    private ThreadLocal<float[]> lightingDataCached = ThreadLocal.withInitial(() -> new float[3]);
+
     public BlockMeshPart(Vector3f[] vertices, Vector3f[] normals, Vector2f[] texCoords, int[] indices) {
         this(vertices, normals, texCoords, indices, 1);
     }
@@ -124,9 +130,10 @@ public class BlockMeshPart {
 
     private float[] calcLightingValuesForVertexPos(ChunkView chunkView, Vector3f vertexPos, Vector3f normal) {
         PerformanceMonitor.startActivity("calcLighting");
-        float[] lights = new float[8];
-        float[] blockLights = new float[8];
-        Block[] blocks = new Block[4];
+
+        Block[] blocks = blocksCached.get();
+        float[] lights = lightsCached.get();
+        float[] blockLights = blockLightsCached.get();
 
         PerformanceMonitor.startActivity("gatherLightInfo");
         Direction dir = Direction.inDirection(normal);
@@ -203,7 +210,7 @@ public class BlockMeshPart {
 
         double resultAmbientOcclusion = (TeraMath.pow(0.40, occCounter) + TeraMath.pow(0.80, occCounterBillboard)) / 2.0;
 
-        float[] output = new float[3];
+        float[] output = lightingDataCached.get();
         if (counterLight == 0) {
             output[0] = 0;
         } else {

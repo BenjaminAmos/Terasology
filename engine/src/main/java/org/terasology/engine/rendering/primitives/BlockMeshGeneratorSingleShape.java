@@ -17,6 +17,8 @@ import org.terasology.nui.Colorc;
 public class BlockMeshGeneratorSingleShape extends BlockMeshShapeGenerator {
     private final Block block;
     private final ResourceUrn baseUrn = new ResourceUrn("engine", "blockmesh");
+    private final ThreadLocal<Block[]> cachedAdjacentBlocks = ThreadLocal.withInitial(() -> new Block[Side.allSides().size()]);
+    private final ThreadLocal<Color> cachedColorCache = ThreadLocal.withInitial(() -> new Color());
 
     public BlockMeshGeneratorSingleShape(Block block) {
         this.block = block;
@@ -41,10 +43,10 @@ public class BlockMeshGeneratorSingleShape extends BlockMeshShapeGenerator {
             return;
         }
 
-        Color colorCache = new Color();
+        Color colorCache = cachedColorCache.get();
 
         // Gather adjacent blocks
-        Block[] adjacentBlocks = new Block[Side.allSides().size()];
+        Block[] adjacentBlocks = cachedAdjacentBlocks.get();
         for (Side side : Side.allSides()) {
             Vector3ic offset = side.direction();
             Block blockToCheck = view.getBlock(x + offset.x(), y + offset.y(), z + offset.z());

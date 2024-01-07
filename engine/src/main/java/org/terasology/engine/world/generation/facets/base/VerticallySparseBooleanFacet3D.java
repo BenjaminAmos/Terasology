@@ -3,6 +3,7 @@
 
 package org.terasology.engine.world.generation.facets.base;
 
+import gnu.trove.set.hash.TIntHashSet;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
 import org.terasology.engine.world.block.BlockRegion;
@@ -21,14 +22,14 @@ public class VerticallySparseBooleanFacet3D implements WorldFacet3D {
 
     private BlockRegion worldRegion;
     private BlockRegion relativeRegion;
-    private Set<Integer>[] data;
+    private TIntHashSet[] data;
 
     public VerticallySparseBooleanFacet3D(BlockRegionc targetRegion, Border3D border) {
         worldRegion = border.expandTo3D(targetRegion);
         relativeRegion = border.expandTo3D(targetRegion.getSize(new Vector3i()));
-        data = new Set[worldRegion.getSizeX() * worldRegion.getSizeZ()];
+        data = new TIntHashSet[worldRegion.getSizeX() * worldRegion.getSizeZ()];
         for (int i = 0; i < data.length; i++) {
-            data[i] = new HashSet<Integer>();
+            data[i] = new TIntHashSet();
         }
     }
 
@@ -47,7 +48,7 @@ public class VerticallySparseBooleanFacet3D implements WorldFacet3D {
     }
 
     public boolean get(Vector3ic pos) {
-        Set<Integer> column = data[getRelativeIndex(pos)];
+        TIntHashSet column = data[getRelativeIndex(pos)];
         return column.contains(pos.y() + worldRegion.minY() - relativeRegion.minY());
     }
 
@@ -56,7 +57,7 @@ public class VerticallySparseBooleanFacet3D implements WorldFacet3D {
     }
 
     public void set(Vector3ic pos, boolean value) {
-        Set<Integer> column = data[getRelativeIndex(pos)];
+        TIntHashSet column = data[getRelativeIndex(pos)];
         int y = pos.y() + worldRegion.minY() - relativeRegion.minY();
         if (value) {
             column.add(y);
@@ -70,7 +71,7 @@ public class VerticallySparseBooleanFacet3D implements WorldFacet3D {
     }
 
     public boolean getWorld(Vector3ic pos) {
-        Set<Integer> column = data[getWorldIndex(pos)];
+        TIntHashSet column = data[getWorldIndex(pos)];
         return column.contains(pos.y());
     }
 
@@ -79,7 +80,7 @@ public class VerticallySparseBooleanFacet3D implements WorldFacet3D {
     }
 
     public void setWorld(Vector3ic pos, boolean value) {
-        Set<Integer> column = data[getWorldIndex(pos)];
+        TIntHashSet column = data[getWorldIndex(pos)];
         if (value) {
             column.add(pos.y());
         } else {
@@ -88,7 +89,9 @@ public class VerticallySparseBooleanFacet3D implements WorldFacet3D {
     }
 
     public Set<Integer> getWorldColumn(int x, int z) {
-        return data[getWorldIndex(new Vector3i(x, worldRegion.minY(), z))];
+        Set<Integer> set = new HashSet<>();
+        data[getWorldIndex(new Vector3i(x, worldRegion.minY(), z))].forEach(set::add);
+        return set;
     }
 
     protected final int getRelativeIndex(Vector3ic pos) {

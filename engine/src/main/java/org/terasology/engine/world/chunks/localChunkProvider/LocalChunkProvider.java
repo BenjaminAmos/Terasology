@@ -18,6 +18,7 @@ import org.terasology.engine.entitySystem.entity.EntityManager;
 import org.terasology.engine.entitySystem.entity.EntityRef;
 import org.terasology.engine.entitySystem.entity.EntityStore;
 import org.terasology.engine.entitySystem.prefab.Prefab;
+import org.terasology.engine.monitoring.Activity;
 import org.terasology.engine.monitoring.PerformanceMonitor;
 import org.terasology.engine.monitoring.chunk.ChunkMonitor;
 import org.terasology.engine.persistence.ChunkStore;
@@ -165,7 +166,10 @@ public class LocalChunkProvider implements ChunkProvider {
         chunk.markReady();
         //TODO, it is not clear if the activate/addedBlocks event logic is correct.
         //See https://github.com/MovingBlocks/Terasology/issues/3244
-        ChunkStore store = this.storageManager.loadChunkStore(chunkPos);
+        ChunkStore store;
+        try (Activity activity = PerformanceMonitor.startActivity("LocalChunkProvider::loadChunkStore")) {
+            store = this.storageManager.loadChunkStore(chunkPos);
+        }
         TShortObjectMap<TIntList> mappings = createBatchBlockEventMappings(chunk);
         if (store != null) {
             store.restoreEntities();
@@ -226,11 +230,17 @@ public class LocalChunkProvider implements ChunkProvider {
 
     @Override
     public void update() {
-        deactivateBlocks();
-        checkForUnload();
-        Chunk chunk;
-        while ((chunk = readyChunks.poll()) != null) {
-            processReadyChunk(chunk);
+        try (Activity activity = PerformanceMonitor.startActivity("LocalChunkProvider::deactivateBlocks")) {
+            deactivateBlocks();
+        }
+        try (Activity activity = PerformanceMonitor.startActivity("LocalChunkProvider::checkForUnload")) {
+            checkForUnload();
+        }
+        try (Activity activity = PerformanceMonitor.startActivity("LocalChunkProvider::processReadyChunk[]")) {
+            Chunk chunk;
+            while ((chunk = readyChunks.poll()) != null) {
+                processReadyChunk(chunk);
+            }
         }
     }
 
