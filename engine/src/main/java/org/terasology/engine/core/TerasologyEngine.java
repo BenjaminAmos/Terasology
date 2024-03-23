@@ -75,6 +75,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -173,7 +174,6 @@ public class TerasologyEngine implements GameEngine {
         this.allSubsystems.add(new ConfigurationSubsystem());
         this.allSubsystems.add(timeSubsystem);
         this.allSubsystems.addAll(subsystems);
-        this.allSubsystems.add(new MonitoringSubsystem());
         this.allSubsystems.add(new PhysicsSubsystem());
         this.allSubsystems.add(new CommandSubsystem());
         this.allSubsystems.add(new NetworkSubsystem());
@@ -181,6 +181,7 @@ public class TerasologyEngine implements GameEngine {
         this.allSubsystems.add(new GameSubsystem());
         this.allSubsystems.add(new I18nSubsystem());
         this.allSubsystems.add(new TelemetrySubSystem());
+        this.allSubsystems.add(new MonitoringSubsystem());
 
         for (EngineSubsystem subsystem : allSubsystems) {
             if (LEGACY_ENGINE_MODULE_POLLUTERS.contains(subsystem.getClass().getName())) {
@@ -467,12 +468,18 @@ public class TerasologyEngine implements GameEngine {
      */
     @SuppressWarnings("checkstyle:EmptyBlock")
     private void mainLoop() {
-        PerformanceMonitor.startActivity("Other");
+//        PerformanceMonitor.startActivity("Other");
+        long tickStart = timeSubsystem.getEngineTime().getRealTimeInMs();
         // MAIN GAME LOOP
         while (tick()) {
             /* do nothing */
+            long tickDuration = timeSubsystem.getEngineTime().getRealTimeInMs() - tickStart;
+            if (tickDuration > 100) {
+                logger.warn("Tick took a long time to execute ({}ms).", tickDuration);
+            }
+            tickStart = timeSubsystem.getEngineTime().getRealTimeInMs();
         }
-        PerformanceMonitor.endActivity();
+//        PerformanceMonitor.endActivity();
     }
 
     /**
@@ -496,6 +503,9 @@ public class TerasologyEngine implements GameEngine {
             return false;
         }
 
+        PerformanceMonitor.startActivity("TerasologyEngine::tick");
+        long startTime = timeSubsystem.getEngineTime().getRealTimeInMs();
+
         Iterator<Float> updateCycles = timeSubsystem.getEngineTime().tick();
         CoreRegistry.setContext(currentState.getContext());
         rootContext.get(NetworkSystem.class).setContext(currentState.getContext());
@@ -513,8 +523,10 @@ public class TerasologyEngine implements GameEngine {
             }
         }
 
-        // Waiting processes are set by modules via GameThread.a/synch() methods.
-        GameThread.processWaitingProcesses();
+        try (Activity ignored = PerformanceMonitor.startActivity("GameThread::processWaitingProcesses")) {
+            // Waiting processes are set by modules via GameThread.a/synch() methods.
+            GameThread.processWaitingProcesses();
+        }
 
         for (EngineSubsystem subsystem : getSubsystems()) {
             try (Activity ignored = PerformanceMonitor.startActivity(subsystem.getName() + " Subsystem postUpdate")) {
@@ -523,8 +535,23 @@ public class TerasologyEngine implements GameEngine {
         }
         assetTypeManager.disposedUnusedAssets();
 
+        PerformanceMonitor.endActivity();
+        long tickDuration = timeSubsystem.getEngineTime().getRealTimeInMs() - startTime;
+        if (tickDuration > 100) {
+            logger.info("Begin abnormal activity stats (tick took {}ms):", tickDuration);
+            AtomicLong totalTime = new AtomicLong();
+            PerformanceMonitor.getTickExecutionStats().forEachEntry((activity, duration) -> {
+                if (duration > 1) {
+                    logger.info("\t{}: {}", activity, duration);
+                }
+                totalTime.addAndGet(duration);
+                return true;
+            });
+            logger.info("End abnormal activity stats (recorded total: {}ms).", totalTime);
+        }
+
         PerformanceMonitor.rollCycle();
-        PerformanceMonitor.startActivity("Other");
+//        PerformanceMonitor.startActivity("Other");
         return true;
     }
 

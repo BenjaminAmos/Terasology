@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 
 /**
@@ -84,7 +85,7 @@ public class LocalChunkProvider implements ChunkProvider {
     private static final Logger logger = LoggerFactory.getLogger(LocalChunkProvider.class);
     private static final int UNLOAD_PER_FRAME = 64;
     private final EntityManager entityManager;
-    private final BlockingQueue<Chunk> readyChunks = Queues.newLinkedBlockingQueue();
+    private final ConcurrentLinkedQueue<Chunk> readyChunks = Queues.newConcurrentLinkedQueue();
     private final BlockingQueue<TShortObjectMap<TIntList>> deactivateBlocksQueue = Queues.newLinkedBlockingQueue();
     private final Map<Vector3ic, Chunk> chunkCache;
 
@@ -158,61 +159,63 @@ public class LocalChunkProvider implements ChunkProvider {
 
 
     private void processReadyChunk(final Chunk chunk) {
-        Vector3ic chunkPos = chunk.getPosition();
-        if (chunkCache.get(chunkPos) != null) {
-            return; // TODO move it in pipeline;
+        try (Activity chunkActivity = PerformanceMonitor.startActivity("LocalChunkProvider::processReadyChunk")) {
+            Vector3ic chunkPos = chunk.getPosition();
+            if (chunkCache.get(chunkPos) != null) {
+                return; // TODO move it in pipeline;
+            }
+            chunkCache.put(new Vector3i(chunkPos), chunk);
+            chunk.markReady();
+            //TODO, it is not clear if the activate/addedBlocks event logic is correct.
+            //See https://github.com/MovingBlocks/Terasology/issues/3244
+            ChunkStore store;
+            try (Activity activity = PerformanceMonitor.startActivity("LocalChunkProvider::loadChunkStore")) {
+                store = this.storageManager.loadChunkStore(chunkPos);
+            }
+            TShortObjectMap<TIntList> mappings = createBatchBlockEventMappings(chunk);
+            if (store != null) {
+                store.restoreEntities();
+
+                PerformanceMonitor.startActivity("Sending OnAddedBlocks");
+                mappings.forEachEntry((id, positions) -> {
+                    if (positions.size() > 0) {
+                        blockManager.getBlock(id).getEntity().send(new OnAddedBlocks(positions, registry));
+                    }
+                    return true;
+                });
+                PerformanceMonitor.endActivity();
+
+                // send on activate
+                PerformanceMonitor.startActivity("Sending OnActivateBlocks");
+
+                mappings.forEachEntry((id, positions) -> {
+                    if (positions.size() > 0) {
+                        blockManager.getBlock(id).getEntity().send(new OnActivatedBlocks(positions, registry));
+                    }
+                    return true;
+                });
+                PerformanceMonitor.endActivity();
+            } else {
+                PerformanceMonitor.startActivity("Generating queued Entities");
+                generateQueuedEntities.remove(chunkPos).forEach(this::generateQueuedEntities);
+                PerformanceMonitor.endActivity();
+
+                // send on activate
+                PerformanceMonitor.startActivity("Sending OnActivateBlocks");
+
+                mappings.forEachEntry((id, positions) -> {
+                    if (positions.size() > 0) {
+                        blockManager.getBlock(id).getEntity().send(new OnActivatedBlocks(positions, registry));
+                    }
+                    return true;
+                });
+                PerformanceMonitor.endActivity();
+
+
+                worldEntity.send(new OnChunkGenerated(chunkPos));
+            }
+            worldEntity.send(new OnChunkLoaded(chunkPos));
         }
-        chunkCache.put(new Vector3i(chunkPos), chunk);
-        chunk.markReady();
-        //TODO, it is not clear if the activate/addedBlocks event logic is correct.
-        //See https://github.com/MovingBlocks/Terasology/issues/3244
-        ChunkStore store;
-        try (Activity activity = PerformanceMonitor.startActivity("LocalChunkProvider::loadChunkStore")) {
-            store = this.storageManager.loadChunkStore(chunkPos);
-        }
-        TShortObjectMap<TIntList> mappings = createBatchBlockEventMappings(chunk);
-        if (store != null) {
-            store.restoreEntities();
-
-            PerformanceMonitor.startActivity("Sending OnAddedBlocks");
-            mappings.forEachEntry((id, positions) -> {
-                if (positions.size() > 0) {
-                    blockManager.getBlock(id).getEntity().send(new OnAddedBlocks(positions, registry));
-                }
-                return true;
-            });
-            PerformanceMonitor.endActivity();
-
-            // send on activate
-            PerformanceMonitor.startActivity("Sending OnActivateBlocks");
-
-            mappings.forEachEntry((id, positions) -> {
-                if (positions.size() > 0) {
-                    blockManager.getBlock(id).getEntity().send(new OnActivatedBlocks(positions, registry));
-                }
-                return true;
-            });
-            PerformanceMonitor.endActivity();
-        } else {
-            PerformanceMonitor.startActivity("Generating queued Entities");
-            generateQueuedEntities.remove(chunkPos).forEach(this::generateQueuedEntities);
-            PerformanceMonitor.endActivity();
-
-            // send on activate
-            PerformanceMonitor.startActivity("Sending OnActivateBlocks");
-
-            mappings.forEachEntry((id, positions) -> {
-                if (positions.size() > 0) {
-                    blockManager.getBlock(id).getEntity().send(new OnActivatedBlocks(positions, registry));
-                }
-                return true;
-            });
-            PerformanceMonitor.endActivity();
-
-
-            worldEntity.send(new OnChunkGenerated(chunkPos));
-        }
-        worldEntity.send(new OnChunkLoaded(chunkPos));
     }
 
     private void generateQueuedEntities(EntityStore store) {
@@ -238,8 +241,14 @@ public class LocalChunkProvider implements ChunkProvider {
         }
         try (Activity activity = PerformanceMonitor.startActivity("LocalChunkProvider::processReadyChunk[]")) {
             Chunk chunk;
+            int chunkCount = 0;
             while ((chunk = readyChunks.poll()) != null) {
                 processReadyChunk(chunk);
+                chunkCount++;
+                if (chunkCount > 1) {
+                    logger.warn("Too many chunks to process this tick: {} chunks remaining", readyChunks.size());
+                    break;
+                }
             }
         }
     }

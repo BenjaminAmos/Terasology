@@ -91,6 +91,8 @@ public class VoxelWorldSystem extends BaseComponentSystem {
             }
         }
         buffer.rewind();
-        colliders.forEach(k -> k.loadChunk(chunk, buffer.duplicate().asShortBuffer()));
+        for (VoxelWorld collider : colliders) {
+            collider.loadChunk(chunk, buffer.duplicate().asShortBuffer());
+        }
     }
 }

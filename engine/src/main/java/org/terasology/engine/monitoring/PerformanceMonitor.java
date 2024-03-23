@@ -3,6 +3,7 @@
 package org.terasology.engine.monitoring;
 
 import gnu.trove.map.TObjectDoubleMap;
+import gnu.trove.map.TObjectLongMap;
 import org.terasology.engine.monitoring.impl.NullPerformanceMonitor;
 import org.terasology.engine.monitoring.impl.PerformanceMonitorImpl;
 import org.terasology.engine.monitoring.impl.PerformanceMonitorInternal;
@@ -81,6 +82,14 @@ public final class PerformanceMonitor {
      */
     public static void rollCycle() {
         instance.rollCycle();
+    }
+
+    /**
+     * TODO
+     * @return TODO
+     */
+    public static TObjectLongMap<String> getTickExecutionStats() {
+        return instance.getTickExecutionStats();
     }
 
     /**

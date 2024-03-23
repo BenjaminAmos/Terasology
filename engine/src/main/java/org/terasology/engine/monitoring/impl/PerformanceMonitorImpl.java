@@ -10,6 +10,8 @@ import gnu.trove.map.hash.TObjectDoubleHashMap;
 import gnu.trove.map.hash.TObjectLongHashMap;
 import gnu.trove.procedure.TObjectDoubleProcedure;
 import gnu.trove.procedure.TObjectLongProcedure;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.terasology.engine.core.EngineTime;
 import org.terasology.engine.core.Time;
 import org.terasology.engine.monitoring.Activity;
@@ -31,7 +33,7 @@ public class PerformanceMonitorImpl implements PerformanceMonitorInternal {
     // on the main thread. Not strictly necessary (these processes are ignored by the PerformanceMonitor
     // anyway) an instance of this class offers a slight performance improvement over standard Activity
     // implementations as it doesn't call the PerformanceMonitor.endActivity() method.
-
+    private static final Logger logger = LoggerFactory.getLogger(PerformanceMonitorImpl.class);
     private final Activity activityInstance = new ActivityInstance();
 
     private final Deque<ActivityInfo> activityStack;
@@ -101,6 +103,8 @@ public class PerformanceMonitorImpl implements PerformanceMonitorInternal {
 
         currentExecutionData = new TObjectLongHashMap<>();
         currentAllocationData = new TObjectLongHashMap<>();
+
+        activityStack.clear();
     }
 
     @Override
@@ -110,6 +114,9 @@ public class PerformanceMonitorImpl implements PerformanceMonitorInternal {
         }
 
         ActivityInfo newActivity = new ActivityInfo(activityName).initialize();
+
+//        newActivity.caller = java.security.AccessController.doPrivileged((java.security.PrivilegedAction<StackWalker.StackFrame>) () ->
+//                StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).walk(s -> s.skip(4).findFirst()).get());
 
         if (!activityStack.isEmpty()) {
             ActivityInfo currentActivity = activityStack.peek();
@@ -133,6 +140,18 @@ public class PerformanceMonitorImpl implements PerformanceMonitorInternal {
 
         ActivityInfo oldActivity = activityStack.pop();
 
+//        java.security.AccessController.doPrivileged((java.security.PrivilegedAction<Object>) () -> {
+//            StackWalker.StackFrame startCaller = oldActivity.caller;
+//            StackWalker.StackFrame endCaller = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
+//                    .walk(s -> s.skip(4).findFirst()).get();
+//            if (!startCaller.getMethodName().equals(endCaller.getMethodName())) {
+//                logger.warn("startActivity() and endActivity() called from different methods:\n\tStart: {}.{}({}:{})\n\tEnd: {}.{}({}:{})",
+//                        startCaller.getClassName(), startCaller.getMethodName(), startCaller.getFileName(), startCaller.getLineNumber(),
+//                        endCaller.getClassName(), endCaller.getMethodName(), endCaller.getFileName(), endCaller.getLineNumber());
+//            }
+//            return null;
+//        });
+
         long endTime = timer.getRealTimeInMs();
         long totalTime = (oldActivity.resumeTime > 0)
                 ? oldActivity.ownTime + endTime - oldActivity.resumeTime
@@ -150,6 +169,11 @@ public class PerformanceMonitorImpl implements PerformanceMonitorInternal {
             currentActivity.resumeTime = endTime;
             currentActivity.startMem = endMem;
         }
+    }
+
+    @Override
+    public TObjectLongMap<String> getTickExecutionStats() {
+        return currentExecutionData;
     }
 
     @Override
@@ -186,6 +210,7 @@ public class PerformanceMonitorImpl implements PerformanceMonitorInternal {
         public long ownTime;
         public long startMem;
         public long ownMem;
+        public StackWalker.StackFrame caller;
 
          ActivityInfo(String activityName) {
             this.name = activityName;

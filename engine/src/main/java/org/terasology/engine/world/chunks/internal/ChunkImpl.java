@@ -66,7 +66,7 @@ public class ChunkImpl implements Chunk {
     private boolean animated;
 
     // Rendering
-    private final AtomicReference<ChunkMesh> activeMesh = new AtomicReference<>();
+    private ChunkMesh activeMesh;
 
     public ChunkImpl(int x, int y, int z, BlockManager blockManager, ExtraBlockDataManager extraDataManager) {
         this(new Vector3i(x, y, z), blockManager, extraDataManager);
@@ -357,11 +357,11 @@ public class ChunkImpl implements Chunk {
     }
 
     @Override
-    public void setMesh(ChunkMesh mesh) {
-        var oldMesh = activeMesh.getAndSet(mesh);
-        if (oldMesh != null) {
-            oldMesh.dispose();
+    public synchronized void setMesh(ChunkMesh mesh) {
+        if (activeMesh != null) {
+            activeMesh.dispose();
         }
+        activeMesh = mesh;
     }
 
     @Override
@@ -375,14 +375,14 @@ public class ChunkImpl implements Chunk {
     }
 
     @Override
-    public boolean hasMesh() {
-        return activeMesh.get() != null;
+    public synchronized boolean hasMesh() {
+        return activeMesh != null;
     }
 
 
     @Override
-    public ChunkMesh getMesh() {
-        return activeMesh.get();
+    public synchronized ChunkMesh getMesh() {
+        return activeMesh;
     }
 
     @Override
@@ -414,11 +414,11 @@ public class ChunkImpl implements Chunk {
     }
 
     @Override
-    public void disposeMesh() {
-        var oldMesh = activeMesh.getAndSet(null);
-        if (oldMesh != null) {
-            oldMesh.dispose();
+    public synchronized void disposeMesh() {
+        if (activeMesh != null) {
+            activeMesh.dispose();
         }
+        activeMesh = null;
     }
 
     @Override

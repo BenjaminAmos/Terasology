@@ -3,6 +3,8 @@
 package org.terasology.engine.monitoring.impl;
 
 import gnu.trove.map.TObjectDoubleMap;
+import gnu.trove.map.TObjectLongMap;
+import gnu.trove.map.hash.TObjectLongHashMap;
 import org.terasology.engine.monitoring.Activity;
 
 /**
@@ -15,6 +17,12 @@ public interface PerformanceMonitorInternal {
     Activity startActivity(String activity);
 
     void endActivity();
+
+    default TObjectLongMap<String> getTickExecutionStats() {
+        TObjectLongMap<String> map = new TObjectLongHashMap<>();
+        map.put("Disabled", 1);
+        return map;
+    }
 
     TObjectDoubleMap<String> getRunningMean();
 

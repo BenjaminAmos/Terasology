@@ -22,6 +22,8 @@ import org.terasology.engine.entitySystem.systems.RegisterMode;
 import org.terasology.engine.entitySystem.systems.RegisterSystem;
 import org.terasology.engine.entitySystem.systems.RenderSystem;
 import org.terasology.engine.logic.location.LocationComponent;
+import org.terasology.engine.monitoring.Activity;
+import org.terasology.engine.monitoring.PerformanceMonitor;
 import org.terasology.engine.network.ClientComponent;
 import org.terasology.engine.network.NetworkSystem;
 import org.terasology.engine.registry.In;
@@ -133,21 +135,27 @@ public class MeshRenderer extends BaseComponentSystem implements RenderSystem {
     @Override
     public void renderOpaque() {
         if (config.getRendering().isRenderNearest()) {
-            renderEntities(Arrays.asList(opaqueMeshSorter.getNearest(config.getRendering().getMeshLimit())));
+            EntityRef[] nearestEntities;
+            try (Activity activity = PerformanceMonitor.startActivity("MeshRenderer::renderOpaque getNearest")) {
+                nearestEntities = opaqueMeshSorter.getNearest(config.getRendering().getMeshLimit());
+            }
+            renderEntities(Arrays.asList(nearestEntities));
         } else {
             renderEntities(opaqueMeshSorter.getEntities());
         }
     }
 
     private void renderEntities(Iterable<EntityRef> entityRefs) {
-        SetMultimap<Material, EntityRef> entitiesToRender = HashMultimap.create();
-        for (EntityRef entity : entityRefs) {
-            MeshComponent meshComponent = entity.getComponent(MeshComponent.class);
-            if (meshComponent != null && meshComponent.material != null) {
-                entitiesToRender.put(meshComponent.material, entity);
+        try (Activity activity = PerformanceMonitor.startActivity("MeshRenderer::renderEntities")) {
+            SetMultimap<Material, EntityRef> entitiesToRender = HashMultimap.create();
+            for (EntityRef entity : entityRefs) {
+                MeshComponent meshComponent = entity.getComponent(MeshComponent.class);
+                if (meshComponent != null && meshComponent.material != null) {
+                    entitiesToRender.put(meshComponent.material, entity);
+                }
             }
+            renderEntitiesByMaterial(entitiesToRender);
         }
-        renderEntitiesByMaterial(entitiesToRender);
     }
 
     private void renderEntitiesByMaterial(SetMultimap<Material, EntityRef> meshByMaterial) {
