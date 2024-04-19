@@ -7,6 +7,8 @@ import org.joml.Vector3ic;
 import org.terasology.engine.entitySystem.entity.EntityRef;
 import org.terasology.engine.entitySystem.systems.BaseComponentSystem;
 import org.terasology.engine.entitySystem.systems.RegisterSystem;
+import org.terasology.engine.monitoring.Activity;
+import org.terasology.engine.monitoring.PerformanceMonitor;
 import org.terasology.engine.physics.bullet.world.VoxelBlockFluidWorld;
 import org.terasology.engine.physics.bullet.world.VoxelBlockWorld;
 import org.terasology.engine.physics.bullet.world.VoxelWorld;
@@ -77,22 +79,33 @@ public class VoxelWorldSystem extends BaseComponentSystem {
     @ReceiveEvent(components = WorldComponent.class)
     public void onNewChunk(OnChunkLoaded chunkAvailable, EntityRef worldEntity) {
         Vector3ic chunkPos = chunkAvailable.getChunkPos();
-        Chunk chunk = chunkProvider.getChunk(chunkPos);
-        ByteBuffer buffer =
-                ByteBuffer.allocateDirect(2 * (Chunks.SIZE_X * Chunks.SIZE_Y * Chunks.SIZE_Z));
-        buffer.order(ByteOrder.nativeOrder());
-        for (int z = 0; z < Chunks.SIZE_Z; z++) {
-            for (int x = 0; x < Chunks.SIZE_X; x++) {
-                for (int y = 0; y < Chunks.SIZE_Y; y++) {
-                    Block block = chunk.getBlock(x, y, z);
-                    colliders.forEach(k -> k.registerBlock(block));
-                    buffer.putShort(block.getId());
+        Chunk chunk;
+        try (Activity activity = PerformanceMonitor.startActivity("VoxelWorldSystem::onNewChunk ChunkProvider::getChunk")) {
+            chunk = chunkProvider.getChunk(chunkPos);
+        }
+        ByteBuffer buffer;
+        try (Activity activity = PerformanceMonitor.startActivity("VoxelWorldSystem::onNewChunk ByteBuffer::allocateDirect")) {
+            buffer = ByteBuffer.allocateDirect(2 * (Chunks.SIZE_X * Chunks.SIZE_Y * Chunks.SIZE_Z));
+            buffer.order(ByteOrder.nativeOrder());
+        }
+        try (Activity activity = PerformanceMonitor.startActivity("VoxelWorldSystem::onNewChunk Create colliders")) {
+            for (int z = 0; z < Chunks.SIZE_Z; z++) {
+                for (int x = 0; x < Chunks.SIZE_X; x++) {
+                    for (int y = 0; y < Chunks.SIZE_Y; y++) {
+                        Block block = chunk.getBlock(x, y, z);
+                        colliders.forEach(k -> k.registerBlock(block));
+                        buffer.putShort(block.getId());
+                    }
                 }
             }
+            buffer.rewind();
         }
-        buffer.rewind();
-        for (VoxelWorld collider : colliders) {
-            collider.loadChunk(chunk, buffer.duplicate().asShortBuffer());
+        try (Activity activity = PerformanceMonitor.startActivity("VoxelWorldSystem::onNewChunk VoxelWorld::loadChunk[]")) {
+            for (VoxelWorld collider : colliders) {
+                try (Activity colliderActivity = PerformanceMonitor.startActivity("VoxelWorldSystem::onNewChunk VoxelWorld::loadChunk")) {
+                    collider.loadChunk(chunk, buffer.duplicate().asShortBuffer());
+                }
+            }
         }
     }
 }

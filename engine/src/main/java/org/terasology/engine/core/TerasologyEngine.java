@@ -533,7 +533,10 @@ public class TerasologyEngine implements GameEngine {
                 subsystem.postUpdate(currentState, timeSubsystem.getEngineTime().getRealDelta());
             }
         }
-        assetTypeManager.disposedUnusedAssets();
+
+        try (Activity ignored = PerformanceMonitor.startActivity("Dispose Unused Assets")) {
+            assetTypeManager.disposedUnusedAssets();
+        }
 
         PerformanceMonitor.endActivity();
         long tickDuration = timeSubsystem.getEngineTime().getRealTimeInMs() - startTime;

@@ -160,21 +160,29 @@ public class LocalChunkProvider implements ChunkProvider {
 
     private void processReadyChunk(final Chunk chunk) {
         try (Activity chunkActivity = PerformanceMonitor.startActivity("LocalChunkProvider::processReadyChunk")) {
-            Vector3ic chunkPos = chunk.getPosition();
-            if (chunkCache.get(chunkPos) != null) {
-                return; // TODO move it in pipeline;
+            Vector3ic chunkPos;
+            try (Activity activity = PerformanceMonitor.startActivity("LocalChunkProvider::processReadyChunk - retrieve from cache")) {
+                chunkPos = chunk.getPosition();
+                if (chunkCache.get(chunkPos) != null) {
+                    return; // TODO move it in pipeline;
+                }
+                chunkCache.put(new Vector3i(chunkPos), chunk);
+                chunk.markReady();
             }
-            chunkCache.put(new Vector3i(chunkPos), chunk);
-            chunk.markReady();
             //TODO, it is not clear if the activate/addedBlocks event logic is correct.
             //See https://github.com/MovingBlocks/Terasology/issues/3244
             ChunkStore store;
             try (Activity activity = PerformanceMonitor.startActivity("LocalChunkProvider::loadChunkStore")) {
                 store = this.storageManager.loadChunkStore(chunkPos);
             }
-            TShortObjectMap<TIntList> mappings = createBatchBlockEventMappings(chunk);
+            TShortObjectMap<TIntList> mappings;
+            try (Activity activity = PerformanceMonitor.startActivity("LocalChunkProvider::createBatchBlockEventMappings")) {
+                mappings = createBatchBlockEventMappings(chunk);
+            }
             if (store != null) {
-                store.restoreEntities();
+                try (Activity activity = PerformanceMonitor.startActivity("ChunkStore::restoreEntities")) {
+                    store.restoreEntities();
+                }
 
                 PerformanceMonitor.startActivity("Sending OnAddedBlocks");
                 mappings.forEachEntry((id, positions) -> {
@@ -212,9 +220,13 @@ public class LocalChunkProvider implements ChunkProvider {
                 PerformanceMonitor.endActivity();
 
 
-                worldEntity.send(new OnChunkGenerated(chunkPos));
+                try (Activity activity = PerformanceMonitor.startActivity("Sending OnChunkGenerated")) {
+                    worldEntity.send(new OnChunkGenerated(chunkPos));
+                }
             }
-            worldEntity.send(new OnChunkLoaded(chunkPos));
+            try (Activity activity = PerformanceMonitor.startActivity("Sending OnChunkLoaded")) {
+                worldEntity.send(new OnChunkLoaded(chunkPos));
+            }
         }
     }
 

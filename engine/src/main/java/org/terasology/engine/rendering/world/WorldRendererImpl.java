@@ -21,6 +21,8 @@ import org.terasology.engine.logic.console.commandSystem.annotations.Command;
 import org.terasology.engine.logic.console.commandSystem.annotations.CommandParam;
 import org.terasology.engine.logic.permission.PermissionManager;
 import org.terasology.engine.logic.players.LocalPlayerSystem;
+import org.terasology.engine.monitoring.Activity;
+import org.terasology.engine.monitoring.PerformanceMonitor;
 import org.terasology.engine.rendering.ShaderManager;
 import org.terasology.engine.rendering.assets.material.Material;
 import org.terasology.engine.rendering.backdrop.BackdropProvider;
@@ -322,24 +324,38 @@ public final class WorldRendererImpl implements WorldRenderer {
     @Override
     public void render(RenderingStage renderingStage) {
 
-        preRenderUpdate(renderingStage);
+        try (Activity activity = PerformanceMonitor.startActivity("WorldRendererImpl::preRenderUpdate")) {
+            preRenderUpdate(renderingStage);
+        }
 
         // TODO: Add a method here to check wireframe configuration and regenerate "renderPipelineTask" accordingly.
 
-        // The following line re-establish OpenGL defaults, so that the nodes/tasks can rely on them.
-        // A place where Terasology overrides the defaults is LwjglGraphics.initOpenGLParams(), but
-        // there could be potentially other places, i.e. in the UI code. In the rendering engine we'd like
-        // to eventually rely on a default OpenGL state.
-        glDisable(GL_CULL_FACE);
-        FBO lastUpdatedGBuffer = displayResolutionDependentFbo.getGBufferPair().getLastUpdatedFbo();
-        glViewport(0, 0, lastUpdatedGBuffer.width(), lastUpdatedGBuffer.height());
+        try (Activity activity = PerformanceMonitor.startActivity("Initialise OpenGL State")) {
+            // The following line re-establish OpenGL defaults, so that the nodes/tasks can rely on them.
+            // A place where Terasology overrides the defaults is LwjglGraphics.initOpenGLParams(), but
+            // there could be potentially other places, i.e. in the UI code. In the rendering engine we'd like
+            // to eventually rely on a default OpenGL state.
+            glDisable(GL_CULL_FACE);
+            FBO lastUpdatedGBuffer = displayResolutionDependentFbo.getGBufferPair().getLastUpdatedFbo();
+            glViewport(0, 0, lastUpdatedGBuffer.width(), lastUpdatedGBuffer.height());
+        }
 
-        renderPipelineTaskList.forEach(RenderPipelineTask::process);
+        try (Activity activity = PerformanceMonitor.startActivity("Execute Render Tasks")) {
+            for (RenderPipelineTask task : renderPipelineTaskList) {
+                try (Activity renderActivity = PerformanceMonitor.startActivity(task.getClass().getSimpleName() + "::process")) {
+                    task.process();
+                }
+            }
+        }
 
-        // this line re-establish Terasology defaults, so that the rest of the application can rely on them.
-        LwjglGraphicsUtil.initOpenGLParams();
+        try (Activity activity = PerformanceMonitor.startActivity("LwjglGraphicsUtil::initOpenGLParams")) {
+            // this line re-establish Terasology defaults, so that the rest of the application can rely on them.
+            LwjglGraphicsUtil.initOpenGLParams();
+        }
 
-        playerCamera.updatePrevViewProjectionMatrix();
+        try (Activity activity = PerformanceMonitor.startActivity("Camera::updatePrevViewProjectionMatrix")) {
+            playerCamera.updatePrevViewProjectionMatrix();
+        }
     }
 
     @Override

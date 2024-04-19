@@ -15,6 +15,8 @@ import org.terasology.engine.context.Context;
 import org.terasology.engine.core.GameEngine;
 import org.terasology.engine.core.modes.GameState;
 import org.terasology.engine.core.subsystem.DisplayDevice;
+import org.terasology.engine.monitoring.Activity;
+import org.terasology.engine.monitoring.PerformanceMonitor;
 import org.terasology.engine.rendering.ShaderManager;
 import org.terasology.engine.rendering.ShaderManagerLwjgl;
 import org.terasology.engine.rendering.nui.internal.LwjglCanvasRenderer;
@@ -72,17 +74,25 @@ public class LwjglGraphics extends BaseLwjglSubsystem {
 
     @Override
     public void postUpdate(GameState currentState, float delta) {
-        graphics.processActions();
-
-        boolean gameWindowIsMinimized = GLFW.glfwGetWindowAttrib(GLFW.glfwGetCurrentContext(), GLFW.GLFW_ICONIFIED) == GLFW.GLFW_TRUE;
-        if (!gameWindowIsMinimized) {
-            currentState.render();
+        try (Activity activity = PerformanceMonitor.startActivity("LwjglGraphicsManager::processActions")) {
+            graphics.processActions();
         }
 
-        lwjglDisplay.update();
-        int frameLimit = context.get(Config.class).getRendering().getFrameLimit();
-        if (frameLimit > 0) {
-            Lwjgl2Sync.sync(frameLimit);
+        try (Activity activity = PerformanceMonitor.startActivity("GameState::render")) {
+            boolean gameWindowIsMinimized = GLFW.glfwGetWindowAttrib(GLFW.glfwGetCurrentContext(), GLFW.GLFW_ICONIFIED) == GLFW.GLFW_TRUE;
+            if (!gameWindowIsMinimized) {
+                currentState.render();
+            }
+        }
+
+        try (Activity activity = PerformanceMonitor.startActivity("LwjglDisplayDevice::update")) {
+            lwjglDisplay.update();
+        }
+        try (Activity activity = PerformanceMonitor.startActivity("Limit Frame Rate")) {
+            int frameLimit = context.get(Config.class).getRendering().getFrameLimit();
+            if (frameLimit > 0) {
+                Lwjgl2Sync.sync(frameLimit);
+            }
         }
         if (lwjglDisplay.isCloseRequested()) {
             engine.shutdown();

@@ -4,6 +4,8 @@ package org.terasology.engine.core;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
+import org.terasology.engine.monitoring.Activity;
+import org.terasology.engine.monitoring.PerformanceMonitor;
 
 import java.util.List;
 import java.util.concurrent.BlockingDeque;
@@ -72,7 +74,11 @@ public final class GameThread {
         if (Thread.currentThread().equals(gameThread)) {
             List<Runnable> processes = Lists.newArrayList();
             pendingRunnables.drainTo(processes);
-            processes.forEach(Runnable::run);
+            for (Runnable process : processes) {
+                try (Activity ignored = PerformanceMonitor.startActivity(process.getClass().getName() + "::run")) {
+                    process.run();
+                }
+            }
         }
     }
 

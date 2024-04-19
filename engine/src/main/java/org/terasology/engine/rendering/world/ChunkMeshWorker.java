@@ -9,6 +9,8 @@ import org.joml.Vector3ic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.engine.core.GameScheduler;
+import org.terasology.engine.monitoring.Activity;
+import org.terasology.engine.monitoring.PerformanceMonitor;
 import org.terasology.engine.monitoring.chunk.ChunkMonitor;
 import org.terasology.engine.rendering.primitives.ChunkMesh;
 import org.terasology.engine.rendering.primitives.ChunkTessellator;
@@ -155,9 +157,11 @@ public final class ChunkMeshWorker {
     }
 
     private static Chunk uploadNewMesh(Chunk chunk, ChunkMesh chunkMesh) {
-        chunkMesh.updateMesh();  // Does GL stuff, must be on main thread!
-        chunkMesh.discardData();
-        chunk.setMesh(chunkMesh);
+        try (Activity activity = PerformanceMonitor.startActivity("ChunkMeshWorker::uploadNewMesh")) {
+            chunkMesh.updateMesh();  // Does GL stuff, must be on main thread!
+            chunkMesh.discardData();
+            chunk.setMesh(chunkMesh);
+        }
         return chunk;
     }
 

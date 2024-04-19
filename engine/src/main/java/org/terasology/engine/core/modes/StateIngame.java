@@ -21,6 +21,7 @@ import org.terasology.engine.identity.storageServiceClient.StorageServiceWorker;
 import org.terasology.engine.input.InputSystem;
 import org.terasology.engine.input.cameraTarget.CameraTargetSystem;
 import org.terasology.engine.logic.console.Console;
+import org.terasology.engine.monitoring.Activity;
 import org.terasology.engine.monitoring.PerformanceMonitor;
 import org.terasology.engine.network.NetworkMode;
 import org.terasology.engine.network.NetworkSystem;
@@ -216,10 +217,14 @@ public class StateIngame implements GameState {
     @Override
     public void render() {
         DisplayDevice display = context.get(DisplayDevice.class);
-        display.prepareToRender();
+        try (Activity activity = PerformanceMonitor.startActivity("DisplayDevice::prepareToRender")) {
+            display.prepareToRender();
+        }
 
-        if (worldRenderer != null) {
-            worldRenderer.render(RenderingStage.MONO);
+        try (Activity activity = PerformanceMonitor.startActivity("WorldRenderer::render")) {
+            if (worldRenderer != null) {
+                worldRenderer.render(RenderingStage.MONO);
+            }
         }
 
         /* UI */

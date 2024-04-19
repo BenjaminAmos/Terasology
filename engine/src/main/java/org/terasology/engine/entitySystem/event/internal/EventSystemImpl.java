@@ -261,7 +261,10 @@ public class EventSystemImpl implements EventSystem {
         for (EventHandlerInfo handler : selectedHandlers) {
             // Check isValid at each stage in case components were removed.
             if (handler.isValidFor(entity)) {
-                handler.invoke(entity, event);
+                try (org.terasology.engine.monitoring.Activity activity = PerformanceMonitor.startActivity(
+                                     "EventSystemImpl::sendStandardEvent " + handler.getHandler().getClass().getName())) {
+                    handler.invoke(entity, event);
+                }
             }
         }
     }
